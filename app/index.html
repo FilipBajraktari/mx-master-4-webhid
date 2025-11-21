@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Logitech Haptic Tester</title>
+    <style>
+        /* Minimal CSS */
+        body {
+            font-family: sans-serif;
+            max-width: 600px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+            line-height: 1.5;
+        }
+        
+        h1 { margin-bottom: 0.5rem; }
+        
+        /* Status Bar */
+        #status-bar {
+            padding: 1rem;
+            background: #f0f0f0;
+            border: 1px solid #ccc;
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* Buttons */
+        button {
+            cursor: pointer;
+            padding: 8px 16px;
+            font-size: 14px;
+        }
+
+        /* Grid for Effect Buttons */
+        .effect-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+            gap: 10px;
+            margin-top: 1rem;
+        }
+
+        .effect-btn {
+            padding: 15px;
+            background: #eee;
+            border: 1px solid #999;
+            font-weight: bold;
+        }
+        
+        .effect-btn:hover { background: #ddd; }
+        .effect-btn:active { background: #ccc; transform: translateY(1px); }
+
+        /* Utilities */
+        .hidden { display: none; }
+        .error { color: red; margin-top: 10px; }
+    </style>
+</head>
+<body>
+
+    <h1>Logitech Haptic Tester</h1>
+    <p>Connect your MX Master and click the buttons below to test haptic effects.</p>
+
+    <div id="status-bar">
+        <span id="status-text">Status: Disconnected</span>
+        <button id="connect-btn">Connect Device</button>
+    </div>
+
+    <div id="controls" class="hidden">
+        <h3>Select Effect ID:</h3>
+        <div class="effect-grid" id="button-container">
+            </div>
+    </div>
+
+    <div id="error-msg" class="error"></div>
+
+    <script type="module">
+        import { LogitechHapticDriver } from './logitech-haptic-driver.js';
+
+        // 1. Initialize Driver
+        const driver = new LogitechHapticDriver();
+
+        // 2. DOM Elements
+        const connectBtn = document.getElementById('connect-btn');
+        const statusText = document.getElementById('status-text');
+        const controls = document.getElementById('controls');
+        const errorMsg = document.getElementById('error-msg');
+        const btnContainer = document.getElementById('button-container');
+
+        // 3. Render Effect Buttons (0 to 14)
+        for (let i = 0; i < 15; i++) {
+            const btn = document.createElement('button');
+            btn.textContent = i;
+            btn.className = 'effect-btn';
+            btn.onclick = () => trigger(i);
+            btnContainer.appendChild(btn);
+        }
+
+        // 4. Event Handlers
+        connectBtn.onclick = async () => {
+            errorMsg.textContent = '';
+            try {
+                if (driver.connectedDevice) {
+                    await driver.disconnect();
+                    setUIState(false);
+                } else {
+                    const device = await driver.connect();
+                    setUIState(true, device.productName);
+                }
+            } catch (e) {
+                // Ignore user cancellation
+                if (!e.message.includes("No device selected")) {
+                    errorMsg.textContent = e.message;
+                }
+            }
+        };
+
+        async function trigger(id) {
+            try {
+                await driver.triggerHaptic(id);
+                console.log('Triggered effect:', id);
+            } catch (e) {
+                errorMsg.textContent = e.message;
+            }
+        }
+
+        function setUIState(isConnected, name = '') {
+            if (isConnected) {
+                statusText.textContent = `Connected: ${name}`;
+                statusText.style.color = 'green';
+                connectBtn.textContent = "Disconnect";
+                controls.classList.remove('hidden');
+            } else {
+                statusText.textContent = "Status: Disconnected";
+                statusText.style.color = 'black';
+                connectBtn.textContent = "Connect Device";
+                controls.classList.add('hidden');
+            }
+        }
+    </script>
+</body>
+</html>
