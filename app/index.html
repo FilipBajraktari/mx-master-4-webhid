@@ -1,12 +1,13 @@
- <!DOCTYPE html>
-<html lang="bs">
+<!DOCTYPE html>
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MX Master 4 - Ultimate Haptic Suite</title>
+    <title>HapticMorse</title>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="icon" href="images/icon.png">
     <style>
-        /* --- GLOBALNI STILOVI --- */
+        /* --- global styles --- */
         body {
             font-family: 'Montserrat', sans-serif;
             background-color: #121212;
@@ -25,11 +26,13 @@
             letter-spacing: 2px;
             margin-top: 20px;
             color: #fff;
+            font-size: 1.5rem;
         }
 
-        /* --- NAVIGACIJA --- */
+        /* --- navigation --- */
         #top-bar {
             width: 100%;
+            position: relative;
             padding: 15px 30px;
             background: #1e1e1e;
             display: flex;
@@ -37,6 +40,7 @@
             align-items: center;
             box-shadow: 0 4px 10px rgba(0,0,0,0.5);
             box-sizing: border-box;
+            text-align: center;
         }
 
         #status-indicator {
@@ -63,7 +67,7 @@
         }
         .nav-btn:hover { border-color: #fff; color: #fff; }
 
-        /* --- VIEW KONTEJNER --- */
+        /* --- view container --- */
         .view-container {
             width: 100%;
             max-width: 800px;
@@ -83,7 +87,7 @@
             opacity: 1;
         }
 
-        /* --- HOME MENI --- */
+        /* --- home menu --- */
         .menu-grid {
             display: grid;
             grid-template-columns: 1fr;
@@ -105,7 +109,7 @@
         .menu-card h3 { margin: 0 0 10px 0; color: #fff; }
         .menu-card p { margin: 0; font-size: 0.8rem; color: #888; }
 
-        /* --- UI ELEMENTI --- */
+        /* --- ui elements --- */
         textarea, input[type="text"] {
             width: 100%;
             background: #1e1e1e;
@@ -130,13 +134,20 @@
             text-transform: uppercase;
             cursor: pointer;
             border-radius: 6px;
-            font-size: 1rem;
+            font-size: 0.9rem;
             transition: 0.2s;
         }
         .action-btn:hover { transform: scale(1.05); background: #ddd; }
         .action-btn:active { transform: scale(0.95); }
 
-        /* --- MORSE OUTPUT DISPLAY --- */
+        #slika{
+            max-height: 90px;
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        /* --- morse output display --- */
         .morse-output-box {
             width: 100%;
             background: #252525;
@@ -156,7 +167,7 @@
             text-align: center;
         }
 
-        /* --- CHATBOT INTERFEJS --- */
+        /* --- chat interface --- */
         .chat-interface {
             width: 100%;
             height: 500px;
@@ -188,7 +199,7 @@
         .msg.user { align-self: flex-end; background: #3498db; color: #fff; }
         .msg.system { align-self: center; font-size: 0.75rem; color: #666; font-style: italic; background: transparent;}
 
-        /* --- TELEGRAPH AREA (UPDATED) --- */
+        /* --- telegraph area --- */
         .telegraph-area {
             height: 160px;
             background: #252525;
@@ -232,49 +243,7 @@
             text-align: center;
         }
 
-        /* --- ON-SCREEN TASTATURA --- */
-        .on-screen-keyboard {
-            padding: 10px 10px 15px;
-            background: #181818;
-            border-top: 1px solid #333;
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-        }
-
-        .kb-row {
-            display: flex;
-            justify-content: center;
-            gap: 5px;
-            flex-wrap: nowrap;
-        }
-
-        .key-btn {
-            min-width: 28px;
-            padding: 6px 8px;
-            border-radius: 4px;
-            border: 1px solid #444;
-            background: #2a2a2a;
-            color: #eee;
-            font-size: 0.8rem;
-            cursor: pointer;
-            transition: background 0.15s, transform 0.1s;
-        }
-
-        .key-btn.wide {
-            min-width: 60px;
-        }
-
-        .key-btn.send {
-            background: #3498db;
-            border-color: #2980b9;
-            font-weight: 700;
-        }
-
-        .key-btn:hover { background: #3a3a3a; }
-        .key-btn:active { transform: scale(0.95); }
-
-        /* --- READER TEXT --- */
+        /* --- reader text --- */
         .reader-text {
             font-size: 1.1rem;
             line-height: 1.8;
@@ -289,73 +258,74 @@
 <body>
 
     <div id="top-bar">
-        <div id="status-indicator">🔴 Disconnected</div>
+        <div id="status-indicator">disconnected</div>
+        <img id="slika" src="images/icon2.png" >
         <div style="display: flex; gap: 10px;">
-            <button id="connect-btn" class="nav-btn">POVEŽI MIŠA</button>
-            <button id="home-btn" class="nav-btn hidden">NAZAD NA HOME</button>
+            <button id="connect-btn" class="nav-btn">connect mouse</button>
+            <button id="home-btn" class="nav-btn hidden">back to home</button>
         </div>
     </div>
 
     <div id="view-home" class="view-container active">
-        <h1>MX Master 4 Haptic Suite</h1>
-        <p style="color: #666; margin-bottom: 40px;">Odaberi modul:</p>
+        <h1>HS - Haptic Morse</h1>
+        <p style="color: #666; margin-bottom: 40px;">select module:</p>
         
         <div class="menu-grid">
             <div class="menu-card" onclick="switchView('view-translator')">
-                <h3>📝 Translator</h3>
-                <p>Unesi tekst i prevedi ga u vibracije.</p>
+                <h3>translator</h3>
+                <p>input text to translate into vibrations.</p>
             </div>
             <div class="menu-card" onclick="switchView('view-reader')">
-                <h3>👁️ Highlight Reader</h3>
-                <p>Automatsko čitanje selektovanog teksta.</p>
+                <h3>highlight reader</h3>
+                <p>auto-read selected text.</p>
             </div>
             <div class="menu-card" onclick="switchView('view-chat')">
-                <h3>🤖 Haptic Chatbot</h3>
-                <p>Levi klik = Kucaj<br>Srednji = Slovo/Reč<br>Desni = Šalji</p>
+                <h3>haptic chatbot</h3>
+                <p>left click = type<br>middle = letter/word<br>right = send</p>
             </div>
         </div>
     </div>
 
     <div id="view-translator" class="view-container">
-        <h1>Text Translator</h1>
-        <p style="margin-bottom: 20px;">Unesite poruku za prevođenje.</p>
+        <h1>text translator</h1>
+        <p style="margin-bottom: 20px;">enter text to translate.</p>
         
-        <textarea id="trans-input" placeholder="Ovde kucajte tekst..."></textarea>
+        <textarea id="trans-input" placeholder="type text here..."></textarea>
         
         <div style="display: flex; gap: 20px;">
-            <button id="trans-play-btn" class="action-btn">TRANSLATE & PLAY</button>
-            <button onclick="stopAll()" class="action-btn" style="background: #e74c3c; color: white;">STOP</button>
+            <button id="trans-play-btn" class="action-btn">translate & play</button>
+            <button onclick="stopAll()" class="action-btn" style="background: #e74c3c; color: white;">stop</button>
         </div>
 
         <div class="morse-output-box" id="trans-morse-visual">
-            [ VIZUELNI PREVOD ]
+            [ visual translation ]
         </div>
     </div>
 
     <div id="view-reader" class="view-container">
-        <h1>Highlight Reader</h1>
+        <h1>highlight reader</h1>
         <p style="color: #3498db; font-weight: bold; margin-bottom: 20px;">
-            STATUS: <span id="reader-status">Spreman. Selektuj bilo šta.</span>
+            status: <span id="reader-status">ready. select any text.</span>
         </p>
         
         <div class="reader-text">
-            Ovo je testni tekst za funkcionalnost automatskog čitanja. 
-            Kada korisnik highlightuje (selektuje) bilo koji deo ove rečenice, 
-            sistem će sačekati tačno jednu sekundu. 
+            this is sample text for the auto-read functionality. 
+            when you highlight (select) any part of this text, 
+            the system will wait exactly one second.
             <br><br>
-            Ako selekcija ostane aktivna, miš će početi da vibrira selektovani tekst u Morzeovom kodu. 
-            Probajte selektovati samo jednu reč.
+            if the selection remains active, the mouse will begin vibrating the selected text in morse code.
+            try selecting just one word.
         </div>
         <br>
-        <button onclick="stopAll()" class="action-btn" style="background: #e74c3c; color: white; padding: 10px 20px; font-size: 0.8rem;">STOP VIBRACIJI</button>
+        <button onclick="stopAll()" class="action-btn" style="background: #e74c3c; color: white; padding: 10px 20px; font-size: 0.8rem;">stop vibration</button>
     </div>
 
     <div id="view-chat" class="view-container">
-        <h1>Haptic AI Chat</h1>
+        <h1>haptic ai chat</h1>
         <div class="chat-interface">
             <div class="chat-messages" id="chat-log">
-                <div class="msg system">Sistem online. Koristite miša za unos.</div>
-                <div class="msg bot">Zdravo! Ja sam Haptic Bot. Klikći da mi pišeš.</div>
+                <div class="msg system">system online. use mouse to input.</div>
+                <div class="msg bot">hello. i am haptic bot. click to write.</div>
             </div>
             
             <div class="telegraph-area" id="telegraph-zone" oncontextmenu="return false;">
@@ -363,52 +333,12 @@
                 <div id="current-symbol"></div>
 
                 <div class="typing-hint">
-                    <span style="color:#3498db; font-weight:bold;">LEVI: Kucaj</span> &nbsp;|&nbsp;
-                    <span style="color:#e67e22; font-weight:bold;">SREDNJI (KLIK): Slovo</span> &nbsp;|&nbsp; 
-                    <span style="color:#2ecc71; font-weight:bold;">SREDNJI (DUGO): Razmak</span> &nbsp;|&nbsp; 
-                    <span style="color:#e74c3c; font-weight:bold;">DESNI: Šalji</span>
+                    <span style="color:#3498db; font-weight:bold;">left: type</span> &nbsp;|&nbsp;
+                    <span style="color:#e67e22; font-weight:bold;">middle (click): letter</span> &nbsp;|&nbsp; 
+                    <span style="color:#2ecc71; font-weight:bold;">middle (hold): space</span> &nbsp;|&nbsp; 
+                    <span style="color:#e74c3c; font-weight:bold;">right: send</span>
                 </div>
 
-            </div>
-
-            <!-- ON-SCREEN TASTATURA -->
-            <div class="on-screen-keyboard" id="on-screen-keyboard">
-                <div class="kb-row">
-                    <button class="key-btn" data-char="Q">Q</button>
-                    <button class="key-btn" data-char="W">W</button>
-                    <button class="key-btn" data-char="E">E</button>
-                    <button class="key-btn" data-char="R">R</button>
-                    <button class="key-btn" data-char="T">T</button>
-                    <button class="key-btn" data-char="Y">Y</button>
-                    <button class="key-btn" data-char="U">U</button>
-                    <button class="key-btn" data-char="I">I</button>
-                    <button class="key-btn" data-char="O">O</button>
-                    <button class="key-btn" data-char="P">P</button>
-                </div>
-                <div class="kb-row">
-                    <button class="key-btn" data-char="A">A</button>
-                    <button class="key-btn" data-char="S">S</button>
-                    <button class="key-btn" data-char="D">D</button>
-                    <button class="key-btn" data-char="F">F</button>
-                    <button class="key-btn" data-char="G">G</button>
-                    <button class="key-btn" data-char="H">H</button>
-                    <button class="key-btn" data-char="J">J</button>
-                    <button class="key-btn" data-char="K">K</button>
-                    <button class="key-btn" data-char="L">L</button>
-                </div>
-                <div class="kb-row">
-                    <button class="key-btn" data-char="Z">Z</button>
-                    <button class="key-btn" data-char="X">X</button>
-                    <button class="key-btn" data-char="C">C</button>
-                    <button class="key-btn" data-char="V">V</button>
-                    <button class="key-btn" data-char="B">B</button>
-                    <button class="key-btn" data-char="N">N</button>
-                    <button class="key-btn" data-char="M">M</button>
-                </div>
-                <div class="kb-row">
-                    <button class="key-btn wide" data-char="SPACE">SPACE</button>
-                    <button class="key-btn send wide" id="kb-send">POŠALJI</button>
-                </div>
             </div>
         </div>
     </div>
@@ -418,24 +348,24 @@
 
         const driver = new LogitechHapticDriver();
 
-        // --- GLOBALNO STANJE ---
+        // --- global state ---
         let isPlaying = false;
         let stopSignal = false;
         let currentView = 'view-home';
         let highlightTimer = null;
 
-        // --- CHAT STANJE ---
+        // --- chat state ---
         let clickStartTime = 0;     
         let middleClickStartTime = 0; 
         let currentSymbolSequence = ""; 
         let committedMessage = "";
         let holdVisualTimer = null;      
         
-        // KONSTANTE
+        // constants
         const DOT_DURATION_MAX = 200;   
         const HOLD_FOR_SPACE_MS = 600;  
 
-        // --- MORZE REČNIK ---
+        // --- morse dictionary ---
         const MORSE_CODE = {
             'a': '.-',    'b': '-...',  'c': '-.-.',  'd': '-..',
             'e': '.',     'f': '..-.',  'g': '--.',   'h': '....',
@@ -452,7 +382,7 @@
 
 
         // ==========================================================
-        // 1. NAVIGACIJA I SISTEM
+        // 1. navigation & system
         // ==========================================================
         window.switchView = (viewId) => {
             document.querySelectorAll('.view-container').forEach(el => el.classList.remove('active'));
@@ -475,7 +405,7 @@
             isPlaying = false;
             clearTimeout(highlightTimer);
             const rs = document.getElementById('reader-status');
-            if (rs) rs.textContent = "Prekinuto.";
+            if (rs) rs.textContent = "interrupted.";
             setTimeout(() => { stopSignal = false; }, 200);
         };
 
@@ -486,21 +416,23 @@
             try {
                 if (driver.connectedDevice) {
                     await driver.disconnect();
-                    statusInd.textContent = "🔴 Disconnected";
+                    statusInd.textContent = "disconnected";
                     statusInd.classList.remove('connected');
-                    connectBtn.textContent = "POVEŽI MIŠA";
+                    statusInd.style.color = "#ff4757";
+                    connectBtn.textContent = "connect mouse";
                 } else {
                     const device = await driver.connect();
-                    statusInd.innerHTML = `🟢 Connected: ${device.productName}`;
+                    statusInd.innerHTML = `connected: ${device.productName}`;
                     statusInd.classList.add('connected');
-                    connectBtn.textContent = "DISCONNECT";
+                    statusInd.style.color = "#2ecc71";
+                    connectBtn.textContent = "disconnect";
                 }
             } catch (e) { console.error(e); }
         };
 
 
         // ==========================================================
-        // 2. TRANSLATOR & READER
+        // 2. translator & reader
         // ==========================================================
         document.getElementById('trans-play-btn').onclick = () => {
             const text = document.getElementById('trans-input').value;
@@ -524,22 +456,22 @@
             const selection = window.getSelection().toString().trim();
 
             if (selection.length > 0) {
-                readerStatus.textContent = "⏳ Čekam 1s...";
+                readerStatus.textContent = "waiting 1s...";
                 readerStatus.style.color = "#f1c40f";
                 highlightTimer = setTimeout(() => {
-                    readerStatus.textContent = "🔊 Čitanje u toku...";
+                    readerStatus.textContent = "reading...";
                     readerStatus.style.color = "#2ecc71";
                     playMorseSequence(selection);
                 }, 1000);
             } else {
-                readerStatus.textContent = "Spreman.";
+                readerStatus.textContent = "ready. select any text.";
                 readerStatus.style.color = "#aaa";
             }
         });
 
 
         // ==========================================================
-        // 3. CHATBOT LOGIKA
+        // 3. chatbot logic
         // ==========================================================
         const telegraphZone = document.getElementById('telegraph-zone');
         const typedTextDisplay = document.getElementById('typed-text');
@@ -554,13 +486,13 @@
             if (currentView !== 'view-chat') return;
             e.preventDefault();
 
-            // LEVI (Morse)
+            // left (morse)
             if (e.button === 0) { 
                 clickStartTime = Date.now();
                 telegraphZone.classList.add('recording');
             }
             
-            // SREDNJI (Slovo vs Reč)
+            // middle (letter vs word)
             if (e.button === 1) { 
                 middleClickStartTime = Date.now();
                 telegraphZone.classList.add('holding'); 
@@ -580,7 +512,7 @@
             telegraphZone.classList.remove('recording', 'holding', 'space-ready');
             clearTimeout(holdVisualTimer);
 
-            // --- LEVI KLIK: Morse ---
+            // --- left click: morse ---
             if (e.button === 0) { 
                 const duration = Date.now() - clickStartTime;
                 const symbol = duration < DOT_DURATION_MAX ? '.' : '-';
@@ -588,7 +520,7 @@
                 updateChatUI();
             } 
             
-            // --- SREDNJI KLIK: Slovo ili Razmak ---
+            // --- middle click: letter or space ---
             else if (e.button === 1) {
                 const holdDuration = Date.now() - middleClickStartTime;
                 
@@ -601,7 +533,7 @@
                 }
             } 
             
-            // --- DESNI KLIK: Šalji ---
+            // --- right click: send ---
             else if (e.button === 2) {
                 if (currentSymbolSequence.length > 0) commitLetter();
                 if (committedMessage.trim().length > 0) sendMessageToBot();
@@ -629,7 +561,7 @@
             currentSymbolDisplay.textContent = currentSymbolSequence;
         }
 
-        // --- ON-SCREEN TASTATURA ---
+        // --- on-screen keyboard ---
         const kbButtons = document.querySelectorAll('.key-btn');
         const kbSendBtn = document.getElementById('kb-send');
 
@@ -655,7 +587,7 @@
             });
         }
 
-        // --- API CONNECT ---
+        // --- api connect ---
         async function sendMessageToBot() {
             const textToSend = committedMessage.trim();
             if (!textToSend) return;
@@ -674,21 +606,21 @@
                 playMorseSequence(reply);
             } catch (e) {
                 const msgDiv = document.getElementById(loadingId);
-                if(msgDiv) msgDiv.textContent = "Offline mode";
+                if(msgDiv) msgDiv.textContent = "offline mode";
             }
         }
 
         async function getSmartReply(input) {
             const q = input.toLowerCase().trim();
-            if (q === 'sos') return "POMOC STIZE";
+            if (q === 'sos') return "HELP COMING";
 
-            // Together.ai API key – ovde ubaci tvoj key
+            // together.ai api key
             const API_KEY = 'tgp_v1_fVak5-bekMyRkTNFDYJiPU3Ke0vY9JRcoZmRsn_Mffc';
 
             if (!API_KEY) {
-                if (q.includes('zdravo')) return "POZDRAV";
-                if (q.includes('ko si')) return "JA SAM MIS";
-                return "PRIMLJENO";
+                if (q.includes('zdravo') || q.includes('hello')) return "GREETINGS";
+                if (q.includes('ko si') || q.includes('who are you')) return "I AM MOUSE";
+                return "RECEIVED";
             }
 
             try {
@@ -708,11 +640,9 @@
                 });
 
                 const data = await response.json();
-                console.log('Together response:', response.status, data);
-
+                
                 if (!response.ok || !data.choices || !data.choices[0]) {
-                    const msg = data.error?.message || 'API ERROR';
-                    return msg.toUpperCase();
+                    return "API ERROR";
                 }
 
                 let reply = data.choices[0].message.content || '';
@@ -723,15 +653,16 @@
                 }
                 return reply.toUpperCase();
             } catch (e) {
-                console.error('Network error:', e);
+                console.error('network error:', e);
                 return "NETWORK ERROR";
             }
         }
 
-        // --- CHAT MESSAGE ---
+        // --- chat message ---
         function addChatMessage(sender, text) {
             const chatLog = document.getElementById('chat-log');
             const div = document.createElement('div');
+            // fix for race condition: unique id
             const id = 'msg-' + Date.now() + '-' + Math.floor(Math.random() * 10000);
             div.id = id;
             div.className = `msg ${sender}`;
@@ -743,68 +674,63 @@
 
 
         // ==========================================================
-        // HAPTIČKI MOTOR
+        // haptic motor
         // ==========================================================
-        
+        const wait = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
-const wait = (ms) => new Promise(resolve => setTimeout(resolve, ms));
-
-async function playMorseSequence(text) {
-    if (!driver.connectedDevice) return;
+        async function playMorseSequence(text) {
+            if (!driver.connectedDevice) return;
             
-    isPlaying = true;
-    stopSignal = false;
+            isPlaying = true;
+            stopSignal = false;
             
-    const cleanText = text.toLowerCase().replace(/[^a-z0-9 .,? ]/g, '');
-    const UNIT = 220;  // npr. 220ms – možeš povećati/smanjiti po osjećaju
+            const cleanText = text.toLowerCase().replace(/[^a-z0-9 .,? ]/g, '');
+            const UNIT = 220;
 
-    try {
-        for (let char of cleanText) {
-            if (stopSignal) break;
-            const code = MORSE_CODE[char];
-            if (!code) continue;
+            try {
+                for (let char of cleanText) {
+                    if (stopSignal) break;
+                    const code = MORSE_CODE[char];
+                    if (!code) continue;
 
-            // razmak između reči
-            if (code === '/') {
-                await wait(UNIT * 7);
-                continue;
-            }
+                    // word space
+                    if (code === '/') {
+                        await wait(UNIT * 7);
+                        continue;
+                    }
 
-            // prolaz kroz simbole jednog slova
-            for (let i = 0; i < code.length; i++) {
-                if (stopSignal) break;
-                const symbol = code[i];
+                    // symbol loop
+                    for (let i = 0; i < code.length; i++) {
+                        if (stopSignal) break;
+                        const symbol = code[i];
 
-                if (symbol === '.') {
-                    // TAČKA – kraća vibracija
-                    await driver.triggerHaptic(0);
-                    await wait(UNIT);        // trajanje tačke
-               } else if (symbol === '-') {
-    await driver.triggerHaptic(14);
-    await wait(UNIT * 4);   // umesto 3, pa čak i 5–6 da bude “tvrđa” odvojenost
-}
+                        if (symbol === '.') {
+                            await driver.triggerHaptic(0);
+                            await wait(UNIT);
+                       } else if (symbol === '-') {
+                            await driver.triggerHaptic(14);
+                            await wait(UNIT * 4);
+                            // reset after long vibration
+                            await driver.triggerHaptic(0);
+                        }
 
+                        // symbol space
+                        if (i < code.length - 1) {
+                            await wait(UNIT);
+                        }
+                    }
 
-                // razmak između simbola u istom slovu (osim posle poslednjeg)
-                if (i < code.length - 1) {
-                    await wait(UNIT);
+                    // letter space
+                    await wait(UNIT * 3);
                 }
+                
+                await wait(UNIT * 2);
+            } catch (e) {
+                console.error(e);
+            } finally {
+                isPlaying = false;
             }
-
-            // razmak između slova
-            await wait(UNIT * 3);
         }
-
-        // mali ekstra odmor na kraju cele poruke
-        await wait(UNIT * 2);
-    } catch (e) {
-        console.error(e);
-    } finally {
-        isPlaying = false;
-    }
-}
-
-
     </script>
 </body>
 </html>

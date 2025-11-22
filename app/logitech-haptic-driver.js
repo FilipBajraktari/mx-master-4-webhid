@@ -1,50 +1,42 @@
 /**
  * logitech-haptic-driver.js
- * A reusable ES Module for Logitech Haptic devices.
+ * reusable es module for logitech haptic devices.
  */
 
 export class LogitechHapticDriver {
     constructor(options = {}) {
         this.device = null;
-        // Configuration defaults based on MX Master specs
+        // config defaults for mx master 4
         this.config = {
-            vendorId: 0x046d,       // Logitech
-            productId: 0xb042,      // MX Master 4
+            vendorId: 0x046d,
+            productId: 0xb042,
             hapticFeatureId: 0x0b4e,
-            reportId: 0x11,         // Long report ID
-            reportLength: 19,       // Expected buffer length
-            deviceIndex: 2,         // Default index for haptics
+            reportId: 0x11,
+            reportLength: 19,
+            deviceIndex: 2,
             ...options
         };
     }
 
-    /**
-     * Returns true if the browser supports WebHID.
-     */
+    // check webhid support
     get isSupported() {
         return 'hid' in navigator;
     }
 
-    /**
-     * Returns the connected device object or null.
-     */
+    // get active device
     get connectedDevice() {
         return (this.device && this.device.opened) ? this.device : null;
     }
 
-    /**
-     * Prompts user to select a device and connects to it.
-     */
+    // connect to device
     async connect() {
-        if (!this.isSupported) throw new Error("WebHID not supported");
+        if (!this.isSupported) throw new Error("webhid not supported");
 
         const devices = await navigator.hid.requestDevice({
             filters: [{ vendorId: this.config.vendorId, productId: this.config.productId }]
         });
 
-        console.log(devices);
-
-        if (!devices.length) throw new Error("No device selected");
+        if (!devices.length) throw new Error("no device selected");
 
         this.device = devices[0];
         
@@ -55,9 +47,7 @@ export class LogitechHapticDriver {
         return this.device;
     }
 
-    /**
-     * Disconnects the device.
-     */
+    // disconnect device
     async disconnect() {
         if (this.connectedDevice) {
             await this.device.close();
@@ -65,22 +55,17 @@ export class LogitechHapticDriver {
         this.device = null;
     }
 
-    /**
-     * Sends the haptic command.
-     * @param {number} effectId - The ID of the effect (0-255)
-     */
+    // trigger haptic effect
     async triggerHaptic(effectId) {
-        if (!this.connectedDevice) throw new Error("Device disconnected");
+        if (!this.connectedDevice) throw new Error("device disconnected");
 
-        // Construct the 19-byte payload
         const data = new Uint8Array(this.config.reportLength);
         const view = new DataView(data.buffer);
 
-        view.setUint8(0, this.config.deviceIndex);           // Byte 0: Device Index
-        view.setUint16(1, this.config.hapticFeatureId, false); // Byte 1-2: Feature ID (Big Endian)
-        view.setUint8(3, effectId);                          // Byte 3: Effect ID
+        view.setUint8(0, this.config.deviceIndex);
+        view.setUint16(1, this.config.hapticFeatureId, false);
+        view.setUint8(3, effectId);
 
-        // Send report (Report ID 0x11)
         await this.device.sendReport(this.config.reportId, data);
     }
 }
