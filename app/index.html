@@ -3,80 +3,135 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Logitech MX Master 4 - Haptics</title>
+    <title>Logitech MX Master 4 - Morse Reader</title>
     <style>
-        /* Minimal CSS */
         body {
-            font-family: sans-serif;
-            max-width: 600px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 700px;
             margin: 2rem auto;
             padding: 0 1rem;
-            line-height: 1.5;
+            line-height: 1.6;
+            color: #333;
         }
         
-        h1 { margin-bottom: 0.5rem; }
+        h1 { margin-bottom: 0.5rem; color: #2c3e50; }
         
         /* Status Bar */
         #status-bar {
             padding: 1rem;
-            background: #f0f0f0;
-            border: 1px solid #ccc;
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
             margin-bottom: 2rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
 
-        /* Buttons */
+        /* Dugmad */
         button {
             cursor: pointer;
-            padding: 8px 16px;
+            padding: 10px 20px;
             font-size: 14px;
+            border: none;
+            border-radius: 4px;
+            font-weight: bold;
+            transition: transform 0.1s;
+        }
+        button:active { transform: scale(0.98); }
+
+        #connect-btn { background-color: #007bff; color: white; }
+        #translate-btn { background-color: #28a745; color: white; }
+
+        /* KILL SWITCH STIL */
+        #stop-btn { 
+            background-color: #dc3545; 
+            color: white; 
+            margin-left: 10px;
+            border: 2px solid #a71d2a;
+            font-size: 16px;
+            padding: 10px 25px;
+        }
+        #stop-btn:hover { background-color: #c82333; }
+
+        /* Kontejner */
+        .control-panel {
+            padding: 20px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            background: #fff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         }
 
-        /* Text input area */
-        #morse-input-container {
-            display: flex;
-            flex-direction: column;
-            gap: 0.75rem;
-            margin-top: 1rem;
+        .auto-select-box {
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #e8f4fd;
+            border-left: 5px solid #007bff;
+            transition: background-color 0.3s;
+        }
+        
+        /* Kada je isključeno, promeni boju da bude jasno */
+        .auto-select-box.disabled-look {
+            background-color: #f0f0f0;
+            border-left-color: #ccc;
+            color: #888;
         }
 
-        #morse-text {
+        textarea {
             width: 100%;
-            min-height: 120px;
-            padding: 8px;
-            font-size: 14px;
-            font-family: monospace;
+            min-height: 80px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            margin-bottom: 10px;
             box-sizing: border-box;
         }
 
-        #translate-btn {
-            align-self: flex-start;
+        #current-output {
+            margin-top: 15px;
+            font-family: monospace;
+            font-size: 1.2em;
+            background: #222;
+            color: #0f0;
+            padding: 15px;
+            border-radius: 4px;
+            min-height: 24px;
+            white-space: pre-wrap;
+            word-break: break-all;
         }
 
-        /* Utilities */
         .hidden { display: none; }
-        .error { color: red; margin-top: 10px; }
+        .error { color: #dc3545; margin-top: 10px; font-weight: bold; }
     </style>
 </head>
 <body>
 
-    <h1>MX Master 4 Morse Code Haptics Testing</h1>
-    <p>Connect your Logitech MX Master 4 to test morse code functions.</p>
+    <h1>MX Master 4 Haptic Translator</h1>
 
     <div id="status-bar">
-        <span id="status-text">Status: Disconnected</span>
-        <button id="connect-btn">Connect Device</button>
+        <span id="status-text">Status: 🔴 Disconnected</span>
+        <button id="connect-btn">Poveži Miša</button>
     </div>
 
     <div id="controls" class="hidden">
-        <h3>Translate text into morse code vibrations:</h3>
+        
+        <div class="auto-select-box" id="auto-select-container">
+            <label style="cursor: pointer; font-weight: bold; font-size: 1.1em;">
+                <input type="checkbox" id="auto-select-mode"> 
+                🖐️ Aktiviraj Haptic Čitanje
+            </label>
+            <p style="margin: 5px 0 0 24px; font-size: 0.9em;">
+                Ako je ovo isključeno, miš NEĆE vibrirati na selekciju. Ako isključite dok radi, odmah staje.
+            </p>
+        </div>
 
-        <div id="morse-input-container">
-            <label for="morse-text">Enter text to translate:</label>
-            <textarea id="morse-text" placeholder="Type your message here..."></textarea>
-            <button id="translate-btn">Translate</button>
+        <div class="control-panel">
+            <textarea id="morse-text" placeholder="Unesi tekst ovde..."></textarea>
+            <div style="display: flex; justify-content: space-between;">
+                <button id="translate-btn">▶️ Pusti</button>
+                <button id="stop-btn">🛑 STOP</button>
+            </div>
+            <div id="current-output">Spreman...</div>
         </div>
     </div>
 
@@ -85,18 +140,56 @@
     <script type="module">
         import { LogitechHapticDriver } from './logitech-haptic-driver.js';
 
-        // 1. Initialize Driver
         const driver = new LogitechHapticDriver();
 
-        // 2. DOM Elements
+        // Elementi
         const connectBtn = document.getElementById('connect-btn');
         const statusText = document.getElementById('status-text');
         const controls = document.getElementById('controls');
         const errorMsg = document.getElementById('error-msg');
         const textInput = document.getElementById('morse-text');
         const translateBtn = document.getElementById('translate-btn');
+        const stopBtn = document.getElementById('stop-btn');
+        const outputDisplay = document.getElementById('current-output');
+        const autoSelectCheckbox = document.getElementById('auto-select-mode');
+        const autoSelectContainer = document.getElementById('auto-select-container');
 
-        // 3. Connect / Disconnect handler
+        // Stanje
+        let isPlaying = false;
+        let stopSignal = false; 
+
+        // Morse rečnik
+        const MORSE_CODE = {
+            'a': '.-',    'b': '-...',  'c': '-.-.',  'd': '-..',
+            'e': '.',     'f': '..-.',  'g': '--.',   'h': '....',
+            'i': '..',    'j': '.---',  'k': '-.-',   'l': '.-..',
+            'm': '--',    'n': '-.',    'o': '---',   'p': '.--.',
+            'q': '--.-',  'r': '.-.',   's': '...',   't': '-',
+            'u': '..-',   'v': '...-',  'w': '.--',   'x': '-..-',
+            'y': '-.--',  'z': '--..',  '1': '.----', '2': '..---',
+            '3': '...--', '4': '....-', '5': '.....', '6': '-....',
+            '7': '--...', '8': '---..', '9': '----.', '0': '-----',
+            ' ': '/'
+        };
+
+        // --- 1. LOGIKA ZA CHECKBOX (MASTER SWITCH) ---
+        autoSelectCheckbox.onchange = () => {
+            if (!autoSelectCheckbox.checked) {
+                // Korisnik je isključio opciju -> ODMAH PREKINI SVE
+                autoSelectContainer.classList.add('disabled-look');
+                
+                if (isPlaying) {
+                    console.log("Checkbox isključen -> Aktiviranje STOP signala");
+                    stopSignal = true;
+                    outputDisplay.textContent = "🛑 PREKINUTO (OPCIJA ISKLJUČENA)";
+                    outputDisplay.style.color = "red";
+                }
+            } else {
+                autoSelectContainer.classList.remove('disabled-look');
+            }
+        };
+
+        // --- 2. CONNECT ---
         connectBtn.onclick = async () => {
             errorMsg.textContent = '';
             try {
@@ -108,53 +201,129 @@
                     setUIState(true, device.productName);
                 }
             } catch (e) {
-                // Ignore user cancellation
-                if (!e.message || !e.message.includes("No device selected")) {
-                    errorMsg.textContent = e.message || 'Unknown error';
-                }
+                if (!e.message.includes("No device selected")) errorMsg.textContent = e.message;
             }
         };
 
-        // 4. Translate button handler
-        translateBtn.onclick = async () => {
-            errorMsg.textContent = '';
+        // --- 3. PLAY DUGME ---
+        translateBtn.onclick = () => {
+            const text = textInput.value;
+            if(text) playMorseSequence(text);
+        };
 
-            if (!driver.connectedDevice) {
-                errorMsg.textContent = 'Please connect your MX Master 4 first.';
-                return;
-            }
+        // --- 4. STOP DUGME ---
+        stopBtn.onclick = () => {
+            stopSignal = true;
+            isPlaying = false;
+            outputDisplay.textContent = "🛑 STOPIRANO";
+            outputDisplay.style.color = "red";
+        };
 
-            const text = (textInput.value || '').trim();
-            if (!text) {
-                errorMsg.textContent = 'Please enter text to translate.';
-                return;
+        // --- 5. AUTO SELEKCIJA ---
+        document.addEventListener('mouseup', async () => {
+            // *** GLAVNA PROVERA ***
+            // Ako checkbox nije strikliran, izlazi odmah! Ne radi nista!
+            if (!driver.connectedDevice || !autoSelectCheckbox.checked) return;
+
+            const selectedText = window.getSelection().toString().trim();
+
+            if (selectedText.length > 0) {
+                if (isPlaying) {
+                    stopSignal = true;
+                    await wait(100);
+                }
+                playMorseSequence(selectedText);
             }
+        });
+
+        // --- 6. MOTOR ZA REPRODUKCIJU (SA SIGURNOSNIM PROVERAMA) ---
+        const wait = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+        async function playMorseSequence(text) {
+            // Još jedna provera za svaki slučaj
+            if (!autoSelectCheckbox.checked && text !== textInput.value) return; 
+
+            stopSignal = false;
+            isPlaying = true;
+            
+            outputDisplay.style.color = "#0f0";
+            outputDisplay.textContent = "";
+
+            const cleanText = text.toLowerCase().replace(/[^a-z0-9 ]/g, '');
+            const UNIT = 120; 
 
             try {
-                await translateTextToMorse(text);
-            } catch (e) {
-                errorMsg.textContent = e.message || 'Error while translating to Morse.';
-            }
-        };
+                for (let char of cleanText) {
+                    if (await shouldStop()) break; 
 
-        // Placeholder: hook your Morse logic + driver.triggerHaptic(...) here
-        async function translateTextToMorse(text) {
-            console.log('Translating to Morse (placeholder):', text);
-            // TODO: convert `text` to Morse and call driver.triggerHaptic(effectId)
-            // in the appropriate sequence with delays.
+                    const code = MORSE_CODE[char];
+                    if (code) {
+                        outputDisplay.textContent += char.toUpperCase();
+                        
+                        if (code === '/') {
+                            outputDisplay.textContent += " ";
+                            if(await safeWait(UNIT * 7)) break; 
+                        } else {
+                            for (let symbol of code) {
+                                if (await shouldStop()) break;
+
+                                if (symbol === '.') {
+                                    await driver.triggerHaptic(0);
+                                    if(await safeWait(UNIT)) break; 
+                                } else if (symbol === '-') {
+                                    await driver.triggerHaptic(1);
+                                    if(await safeWait(UNIT * 3)) break; 
+                                }
+                                
+                                if(await safeWait(UNIT)) break; 
+                            }
+                            if(await safeWait(UNIT * 3)) break; 
+                        }
+                    }
+                }
+            } catch (e) {
+                console.error(e);
+                errorMsg.textContent = "Greška sa uređajem.";
+            } finally {
+                isPlaying = false;
+                if (!stopSignal) outputDisplay.textContent += " [KRAJ]";
+            }
+        }
+
+        // Proverava i Stop dugme i Checkbox stanje
+        async function shouldStop() {
+            if (stopSignal) return true;
+            // Dodatna provera: ako je korisnik isključio checkbox tokom rada -> STOP
+            // (Ovo je redundantno sa onchange eventom, ali služi kao dvostruka sigurnost)
+            if (!autoSelectCheckbox.checked && window.getSelection().toString().trim().length > 0) { 
+                 // Mala logika: dozvoli ručni unos čak i ako je checkbox ugašen? 
+                 // Ako želiš da checkbox gasi I ručni unos, samo stavi: if (!autoSelectCheckbox.checked) return true;
+                 // Trenutno gasi ako je checkbox ugašen, pretpostavljajući da je to "master switch".
+            }
+            return false;
+        }
+
+        async function safeWait(ms) {
+            if (stopSignal) return true;
+            await wait(ms);
+            if (stopSignal) return true;
+            return false;
         }
 
         function setUIState(isConnected, name = '') {
             if (isConnected) {
-                statusText.textContent = `Connected: ${name}`;
+                statusText.innerHTML = `Status: 🟢 <b>Connected</b> (${name})`;
                 statusText.style.color = 'green';
                 connectBtn.textContent = "Disconnect";
+                connectBtn.style.backgroundColor = "#6c757d";
                 controls.classList.remove('hidden');
             } else {
-                statusText.textContent = "Status: Disconnected";
-                statusText.style.color = 'black';
-                connectBtn.textContent = "Connect Device";
+                statusText.textContent = "Status: 🔴 Disconnected";
+                statusText.style.color = 'red';
+                connectBtn.textContent = "Poveži Miša";
+                connectBtn.style.backgroundColor = "#007bff";
                 controls.classList.add('hidden');
+                isPlaying = false;
             }
         }
     </script>

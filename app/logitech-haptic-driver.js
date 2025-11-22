@@ -1,5 +1,5 @@
 /**
- * logitech-driver.js
+ * logitech-haptic-driver.js
  * A reusable ES Module for Logitech Haptic devices.
  */
 
