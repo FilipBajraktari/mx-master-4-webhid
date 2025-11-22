@@ -1,1 +1,810 @@
- 
+ <!DOCTYPE html>
+<html lang="bs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MX Master 4 - Ultimate Haptic Suite</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        /* --- GLOBALNI STILOVI --- */
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: #121212;
+            color: #e0e0e0;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        h1 {
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-top: 20px;
+            color: #fff;
+        }
+
+        /* --- NAVIGACIJA --- */
+        #top-bar {
+            width: 100%;
+            padding: 15px 30px;
+            background: #1e1e1e;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            box-sizing: border-box;
+        }
+
+        #status-indicator {
+            font-size: 0.8rem;
+            font-weight: bold;
+            color: #ff4757;
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        #status-indicator.connected { color: #2ecc71; }
+
+        .nav-btn {
+            background: transparent;
+            border: 1px solid #555;
+            color: #aaa;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            transition: 0.2s;
+        }
+        .nav-btn:hover { border-color: #fff; color: #fff; }
+
+        /* --- VIEW KONTEJNER --- */
+        .view-container {
+            width: 100%;
+            max-width: 800px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding: 40px 20px;
+            display: none;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+        }
+
+        .view-container.active {
+            display: flex;
+            opacity: 1;
+        }
+
+        /* --- HOME MENI --- */
+        .menu-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .menu-card {
+            background: #1e1e1e;
+            padding: 30px;
+            border-radius: 12px;
+            text-align: center;
+            cursor: pointer;
+            border: 1px solid #333;
+            transition: transform 0.2s, border-color 0.2s;
+        }
+        .menu-card:hover { transform: translateY(-5px); border-color: #3498db; }
+        .menu-card h3 { margin: 0 0 10px 0; color: #fff; }
+        .menu-card p { margin: 0; font-size: 0.8rem; color: #888; }
+
+        /* --- UI ELEMENTI --- */
+        textarea, input[type="text"] {
+            width: 100%;
+            background: #1e1e1e;
+            border: 1px solid #333;
+            color: #fff;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 1rem;
+            resize: vertical;
+            margin-bottom: 20px;
+            box-sizing: border-box;
+        }
+        textarea:focus, input:focus { outline: none; border-color: #3498db; }
+
+        .action-btn {
+            background: #fff;
+            color: #000;
+            border: none;
+            padding: 15px 30px;
+            font-weight: 800;
+            text-transform: uppercase;
+            cursor: pointer;
+            border-radius: 6px;
+            font-size: 1rem;
+            transition: 0.2s;
+        }
+        .action-btn:hover { transform: scale(1.05); background: #ddd; }
+        .action-btn:active { transform: scale(0.95); }
+
+        /* --- MORSE OUTPUT DISPLAY --- */
+        .morse-output-box {
+            width: 100%;
+            background: #252525;
+            color: #2ecc71;
+            font-family: monospace;
+            font-size: 1.2rem;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            min-height: 60px;
+            word-break: break-all;
+            letter-spacing: 3px;
+            border: 1px solid #333;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+
+        /* --- CHATBOT INTERFEJS --- */
+        .chat-interface {
+            width: 100%;
+            height: 500px;
+            background: #1e1e1e;
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            border: 1px solid #333;
+        }
+
+        .chat-messages {
+            flex-grow: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .msg {
+            max-width: 75%;
+            padding: 10px 15px;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+        .msg.bot { align-self: flex-start; background: #333; color: #fff; }
+        .msg.user { align-self: flex-end; background: #3498db; color: #fff; }
+        .msg.system { align-self: center; font-size: 0.75rem; color: #666; font-style: italic; background: transparent;}
+
+        /* --- TELEGRAPH AREA (UPDATED) --- */
+        .telegraph-area {
+            height: 160px;
+            background: #252525;
+            border-top: 1px solid #444;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            user-select: none;
+            transition: background 0.2s;
+            position: relative;
+        }
+        
+        .telegraph-area.recording { background: #333 !important; }
+        .telegraph-area.holding { background: #e67e22 !important; } 
+        .telegraph-area.space-ready { background: #2ecc71 !important; } 
+
+        #typed-text {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 1.4rem;
+            color: #fff;
+            font-weight: bold;
+            min-height: 1.5rem;
+            margin-bottom: 10px;
+        }
+        #current-symbol {
+            font-family: monospace;
+            font-size: 1.8rem;
+            color: #f1c40f;
+            letter-spacing: 5px;
+            height: 40px;
+            font-weight: bold;
+        }
+        .typing-hint {
+            font-size: 0.75rem; 
+            color: #888; 
+            position: absolute; 
+            bottom: 10px;
+            width: 100%;
+            text-align: center;
+        }
+
+        /* --- ON-SCREEN TASTATURA --- */
+        .on-screen-keyboard {
+            padding: 10px 10px 15px;
+            background: #181818;
+            border-top: 1px solid #333;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .kb-row {
+            display: flex;
+            justify-content: center;
+            gap: 5px;
+            flex-wrap: nowrap;
+        }
+
+        .key-btn {
+            min-width: 28px;
+            padding: 6px 8px;
+            border-radius: 4px;
+            border: 1px solid #444;
+            background: #2a2a2a;
+            color: #eee;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: background 0.15s, transform 0.1s;
+        }
+
+        .key-btn.wide {
+            min-width: 60px;
+        }
+
+        .key-btn.send {
+            background: #3498db;
+            border-color: #2980b9;
+            font-weight: 700;
+        }
+
+        .key-btn:hover { background: #3a3a3a; }
+        .key-btn:active { transform: scale(0.95); }
+
+        /* --- READER TEXT --- */
+        .reader-text {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            color: #aaa;
+            text-align: justify;
+        }
+        .reader-text::selection { background: #3498db; color: white; }
+        .hidden { display: none !important; }
+
+    </style>
+</head>
+<body>
+
+    <div id="top-bar">
+        <div id="status-indicator">🔴 Disconnected</div>
+        <div style="display: flex; gap: 10px;">
+            <button id="connect-btn" class="nav-btn">POVEŽI MIŠA</button>
+            <button id="home-btn" class="nav-btn hidden">NAZAD NA HOME</button>
+        </div>
+    </div>
+
+    <div id="view-home" class="view-container active">
+        <h1>MX Master 4 Haptic Suite</h1>
+        <p style="color: #666; margin-bottom: 40px;">Odaberi modul:</p>
+        
+        <div class="menu-grid">
+            <div class="menu-card" onclick="switchView('view-translator')">
+                <h3>📝 Translator</h3>
+                <p>Unesi tekst i prevedi ga u vibracije.</p>
+            </div>
+            <div class="menu-card" onclick="switchView('view-reader')">
+                <h3>👁️ Highlight Reader</h3>
+                <p>Automatsko čitanje selektovanog teksta.</p>
+            </div>
+            <div class="menu-card" onclick="switchView('view-chat')">
+                <h3>🤖 Haptic Chatbot</h3>
+                <p>Levi klik = Kucaj<br>Srednji = Slovo/Reč<br>Desni = Šalji</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="view-translator" class="view-container">
+        <h1>Text Translator</h1>
+        <p style="margin-bottom: 20px;">Unesite poruku za prevođenje.</p>
+        
+        <textarea id="trans-input" placeholder="Ovde kucajte tekst..."></textarea>
+        
+        <div style="display: flex; gap: 20px;">
+            <button id="trans-play-btn" class="action-btn">TRANSLATE & PLAY</button>
+            <button onclick="stopAll()" class="action-btn" style="background: #e74c3c; color: white;">STOP</button>
+        </div>
+
+        <div class="morse-output-box" id="trans-morse-visual">
+            [ VIZUELNI PREVOD ]
+        </div>
+    </div>
+
+    <div id="view-reader" class="view-container">
+        <h1>Highlight Reader</h1>
+        <p style="color: #3498db; font-weight: bold; margin-bottom: 20px;">
+            STATUS: <span id="reader-status">Spreman. Selektuj bilo šta.</span>
+        </p>
+        
+        <div class="reader-text">
+            Ovo je testni tekst za funkcionalnost automatskog čitanja. 
+            Kada korisnik highlightuje (selektuje) bilo koji deo ove rečenice, 
+            sistem će sačekati tačno jednu sekundu. 
+            <br><br>
+            Ako selekcija ostane aktivna, miš će početi da vibrira selektovani tekst u Morzeovom kodu. 
+            Probajte selektovati samo jednu reč.
+        </div>
+        <br>
+        <button onclick="stopAll()" class="action-btn" style="background: #e74c3c; color: white; padding: 10px 20px; font-size: 0.8rem;">STOP VIBRACIJI</button>
+    </div>
+
+    <div id="view-chat" class="view-container">
+        <h1>Haptic AI Chat</h1>
+        <div class="chat-interface">
+            <div class="chat-messages" id="chat-log">
+                <div class="msg system">Sistem online. Koristite miša za unos.</div>
+                <div class="msg bot">Zdravo! Ja sam Haptic Bot. Klikći da mi pišeš.</div>
+            </div>
+            
+            <div class="telegraph-area" id="telegraph-zone" oncontextmenu="return false;">
+                <div id="typed-text"></div>
+                <div id="current-symbol"></div>
+
+                <div class="typing-hint">
+                    <span style="color:#3498db; font-weight:bold;">LEVI: Kucaj</span> &nbsp;|&nbsp;
+                    <span style="color:#e67e22; font-weight:bold;">SREDNJI (KLIK): Slovo</span> &nbsp;|&nbsp; 
+                    <span style="color:#2ecc71; font-weight:bold;">SREDNJI (DUGO): Razmak</span> &nbsp;|&nbsp; 
+                    <span style="color:#e74c3c; font-weight:bold;">DESNI: Šalji</span>
+                </div>
+
+            </div>
+
+            <!-- ON-SCREEN TASTATURA -->
+            <div class="on-screen-keyboard" id="on-screen-keyboard">
+                <div class="kb-row">
+                    <button class="key-btn" data-char="Q">Q</button>
+                    <button class="key-btn" data-char="W">W</button>
+                    <button class="key-btn" data-char="E">E</button>
+                    <button class="key-btn" data-char="R">R</button>
+                    <button class="key-btn" data-char="T">T</button>
+                    <button class="key-btn" data-char="Y">Y</button>
+                    <button class="key-btn" data-char="U">U</button>
+                    <button class="key-btn" data-char="I">I</button>
+                    <button class="key-btn" data-char="O">O</button>
+                    <button class="key-btn" data-char="P">P</button>
+                </div>
+                <div class="kb-row">
+                    <button class="key-btn" data-char="A">A</button>
+                    <button class="key-btn" data-char="S">S</button>
+                    <button class="key-btn" data-char="D">D</button>
+                    <button class="key-btn" data-char="F">F</button>
+                    <button class="key-btn" data-char="G">G</button>
+                    <button class="key-btn" data-char="H">H</button>
+                    <button class="key-btn" data-char="J">J</button>
+                    <button class="key-btn" data-char="K">K</button>
+                    <button class="key-btn" data-char="L">L</button>
+                </div>
+                <div class="kb-row">
+                    <button class="key-btn" data-char="Z">Z</button>
+                    <button class="key-btn" data-char="X">X</button>
+                    <button class="key-btn" data-char="C">C</button>
+                    <button class="key-btn" data-char="V">V</button>
+                    <button class="key-btn" data-char="B">B</button>
+                    <button class="key-btn" data-char="N">N</button>
+                    <button class="key-btn" data-char="M">M</button>
+                </div>
+                <div class="kb-row">
+                    <button class="key-btn wide" data-char="SPACE">SPACE</button>
+                    <button class="key-btn send wide" id="kb-send">POŠALJI</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { LogitechHapticDriver } from './logitech-haptic-driver.js';
+
+        const driver = new LogitechHapticDriver();
+
+        // --- GLOBALNO STANJE ---
+        let isPlaying = false;
+        let stopSignal = false;
+        let currentView = 'view-home';
+        let highlightTimer = null;
+
+        // --- CHAT STANJE ---
+        let clickStartTime = 0;     
+        let middleClickStartTime = 0; 
+        let currentSymbolSequence = ""; 
+        let committedMessage = "";
+        let holdVisualTimer = null;      
+        
+        // KONSTANTE
+        const DOT_DURATION_MAX = 200;   
+        const HOLD_FOR_SPACE_MS = 600;  
+
+        // --- MORZE REČNIK ---
+        const MORSE_CODE = {
+            'a': '.-',    'b': '-...',  'c': '-.-.',  'd': '-..',
+            'e': '.',     'f': '..-.',  'g': '--.',   'h': '....',
+            'i': '..',    'j': '.---',  'k': '-.-',   'l': '.-..',
+            'm': '--',    'n': '-.',    'o': '---',   'p': '.--.',
+            'q': '--.-',  'r': '.-.',   's': '...',   't': '-',
+            'u': '..-',   'v': '...-',  'w': '.--',   'x': '-..-',
+            'y': '-.--',  'z': '--..',  '1': '.----', '2': '..---',
+            '3': '...--', '4': '....-', '5': '.....', '6': '-....',
+            '7': '--...', '8': '---..', '9': '----.', '0': '-----',
+            ' ': '/',     '.': '.-.-.-', ',': '--..--', '?': '..--..'
+        };
+        const REVERSE_MORSE = Object.fromEntries(Object.entries(MORSE_CODE).map(([k, v]) => [v, k]));
+
+
+        // ==========================================================
+        // 1. NAVIGACIJA I SISTEM
+        // ==========================================================
+        window.switchView = (viewId) => {
+            document.querySelectorAll('.view-container').forEach(el => el.classList.remove('active'));
+            document.getElementById(viewId).classList.add('active');
+            currentView = viewId;
+            
+            const homeBtn = document.getElementById('home-btn');
+            if (viewId === 'view-home') {
+                homeBtn.classList.add('hidden');
+                stopAll();
+            } else {
+                homeBtn.classList.remove('hidden');
+            }
+        };
+
+        document.getElementById('home-btn').onclick = () => window.switchView('view-home');
+
+        window.stopAll = () => {
+            stopSignal = true;
+            isPlaying = false;
+            clearTimeout(highlightTimer);
+            const rs = document.getElementById('reader-status');
+            if (rs) rs.textContent = "Prekinuto.";
+            setTimeout(() => { stopSignal = false; }, 200);
+        };
+
+        const connectBtn = document.getElementById('connect-btn');
+        const statusInd = document.getElementById('status-indicator');
+
+        connectBtn.onclick = async () => {
+            try {
+                if (driver.connectedDevice) {
+                    await driver.disconnect();
+                    statusInd.textContent = "🔴 Disconnected";
+                    statusInd.classList.remove('connected');
+                    connectBtn.textContent = "POVEŽI MIŠA";
+                } else {
+                    const device = await driver.connect();
+                    statusInd.innerHTML = `🟢 Connected: ${device.productName}`;
+                    statusInd.classList.add('connected');
+                    connectBtn.textContent = "DISCONNECT";
+                }
+            } catch (e) { console.error(e); }
+        };
+
+
+        // ==========================================================
+        // 2. TRANSLATOR & READER
+        // ==========================================================
+        document.getElementById('trans-play-btn').onclick = () => {
+            const text = document.getElementById('trans-input').value;
+            if(text) {
+                const cleanText = text.toLowerCase();
+                let visualStr = "";
+                for (let char of cleanText) {
+                    if(MORSE_CODE[char]) visualStr += MORSE_CODE[char] + " ";
+                    else if (char === " ") visualStr += " / ";
+                }
+                document.getElementById('trans-morse-visual').textContent = visualStr;
+                playMorseSequence(text);
+            }
+        };
+
+        document.addEventListener('selectionchange', () => {
+            if (currentView !== 'view-reader') return;
+            const readerStatus = document.getElementById('reader-status');
+            clearTimeout(highlightTimer);
+            if (isPlaying) stopAll();
+            const selection = window.getSelection().toString().trim();
+
+            if (selection.length > 0) {
+                readerStatus.textContent = "⏳ Čekam 1s...";
+                readerStatus.style.color = "#f1c40f";
+                highlightTimer = setTimeout(() => {
+                    readerStatus.textContent = "🔊 Čitanje u toku...";
+                    readerStatus.style.color = "#2ecc71";
+                    playMorseSequence(selection);
+                }, 1000);
+            } else {
+                readerStatus.textContent = "Spreman.";
+                readerStatus.style.color = "#aaa";
+            }
+        });
+
+
+        // ==========================================================
+        // 3. CHATBOT LOGIKA
+        // ==========================================================
+        const telegraphZone = document.getElementById('telegraph-zone');
+        const typedTextDisplay = document.getElementById('typed-text');
+        const currentSymbolDisplay = document.getElementById('current-symbol');
+
+        telegraphZone.addEventListener('contextmenu', e => e.preventDefault());
+        telegraphZone.addEventListener('mousedown', e => {
+            if(e.button === 1) e.preventDefault();
+        });
+
+        telegraphZone.addEventListener('mousedown', (e) => {
+            if (currentView !== 'view-chat') return;
+            e.preventDefault();
+
+            // LEVI (Morse)
+            if (e.button === 0) { 
+                clickStartTime = Date.now();
+                telegraphZone.classList.add('recording');
+            }
+            
+            // SREDNJI (Slovo vs Reč)
+            if (e.button === 1) { 
+                middleClickStartTime = Date.now();
+                telegraphZone.classList.add('holding'); 
+                
+                clearTimeout(holdVisualTimer);
+                holdVisualTimer = setTimeout(() => {
+                    telegraphZone.classList.remove('holding');
+                    telegraphZone.classList.add('space-ready'); 
+                }, HOLD_FOR_SPACE_MS);
+            }
+        });
+
+        telegraphZone.addEventListener('mouseup', (e) => {
+            if (currentView !== 'view-chat') return;
+            e.preventDefault();
+            
+            telegraphZone.classList.remove('recording', 'holding', 'space-ready');
+            clearTimeout(holdVisualTimer);
+
+            // --- LEVI KLIK: Morse ---
+            if (e.button === 0) { 
+                const duration = Date.now() - clickStartTime;
+                const symbol = duration < DOT_DURATION_MAX ? '.' : '-';
+                currentSymbolSequence += symbol;
+                updateChatUI();
+            } 
+            
+            // --- SREDNJI KLIK: Slovo ili Razmak ---
+            else if (e.button === 1) {
+                const holdDuration = Date.now() - middleClickStartTime;
+                
+                if (currentSymbolSequence.length > 0) {
+                    commitLetter();
+                }
+
+                if (holdDuration > HOLD_FOR_SPACE_MS) {
+                    addSpace();
+                }
+            } 
+            
+            // --- DESNI KLIK: Šalji ---
+            else if (e.button === 2) {
+                if (currentSymbolSequence.length > 0) commitLetter();
+                if (committedMessage.trim().length > 0) sendMessageToBot();
+            }
+        });
+
+        function commitLetter() {
+            if (!currentSymbolSequence) return;
+            const letter = REVERSE_MORSE[currentSymbolSequence];
+            const charToAdd = letter ? letter.toUpperCase() : '?';
+            committedMessage += charToAdd;
+            currentSymbolSequence = ""; 
+            updateChatUI();
+        }
+
+        function addSpace() {
+            if (committedMessage.length > 0 && !committedMessage.endsWith(" ")) {
+                committedMessage += " ";
+                updateChatUI();
+            }
+        }
+
+        function updateChatUI() {
+            typedTextDisplay.textContent = committedMessage;
+            currentSymbolDisplay.textContent = currentSymbolSequence;
+        }
+
+        // --- ON-SCREEN TASTATURA ---
+        const kbButtons = document.querySelectorAll('.key-btn');
+        const kbSendBtn = document.getElementById('kb-send');
+
+        kbButtons.forEach(btn => {
+            const ch = btn.dataset.char;
+            if (ch === 'SPACE') {
+                btn.addEventListener('click', () => {
+                    addSpace();
+                });
+            } else if (ch) {
+                btn.addEventListener('click', () => {
+                    committedMessage += ch;
+                    updateChatUI();
+                });
+            }
+        });
+
+        if (kbSendBtn) {
+            kbSendBtn.addEventListener('click', () => {
+                if (committedMessage.trim().length > 0) {
+                    sendMessageToBot();
+                }
+            });
+        }
+
+        // --- API CONNECT ---
+        async function sendMessageToBot() {
+            const textToSend = committedMessage.trim();
+            if (!textToSend) return;
+
+            addChatMessage('user', textToSend);
+            committedMessage = ""; 
+            currentSymbolSequence = "";
+            updateChatUI();
+            
+            const loadingId = addChatMessage('bot', '...');
+            
+            try {
+                const reply = await getSmartReply(textToSend);
+                const msgDiv = document.getElementById(loadingId);
+                if(msgDiv) msgDiv.textContent = reply;
+                playMorseSequence(reply);
+            } catch (e) {
+                const msgDiv = document.getElementById(loadingId);
+                if(msgDiv) msgDiv.textContent = "Offline mode";
+            }
+        }
+
+        async function getSmartReply(input) {
+            const q = input.toLowerCase().trim();
+            if (q === 'sos') return "POMOC STIZE";
+
+            // Together.ai API key – ovde ubaci tvoj key
+            const API_KEY = 'tgp_v1_fVak5-bekMyRkTNFDYJiPU3Ke0vY9JRcoZmRsn_Mffc';
+
+            if (!API_KEY) {
+                if (q.includes('zdravo')) return "POZDRAV";
+                if (q.includes('ko si')) return "JA SAM MIS";
+                return "PRIMLJENO";
+            }
+
+            try {
+                const response = await fetch('https://api.together.xyz/v1/chat/completions', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${API_KEY}`
+                    },
+                    body: JSON.stringify({
+                        model: "openai/gpt-oss-20b",
+                        messages: [
+                            { role: "system", content: "You are a haptic assistant. Answer in max 5 words." },
+                            { role: "user", content: input }
+                        ]
+                    })
+                });
+
+                const data = await response.json();
+                console.log('Together response:', response.status, data);
+
+                if (!response.ok || !data.choices || !data.choices[0]) {
+                    const msg = data.error?.message || 'API ERROR';
+                    return msg.toUpperCase();
+                }
+
+                let reply = data.choices[0].message.content || '';
+                reply = reply.trim();
+                const words = reply.split(/\s+/);
+                if (words.length > 5) {
+                    reply = words.slice(0, 5).join(' ');
+                }
+                return reply.toUpperCase();
+            } catch (e) {
+                console.error('Network error:', e);
+                return "NETWORK ERROR";
+            }
+        }
+
+        // --- CHAT MESSAGE ---
+        function addChatMessage(sender, text) {
+            const chatLog = document.getElementById('chat-log');
+            const div = document.createElement('div');
+            const id = 'msg-' + Date.now() + '-' + Math.floor(Math.random() * 10000);
+            div.id = id;
+            div.className = `msg ${sender}`;
+            div.textContent = text;
+            chatLog.appendChild(div);
+            chatLog.scrollTop = chatLog.scrollHeight;
+            return id;
+        }
+
+
+        // ==========================================================
+        // HAPTIČKI MOTOR
+        // ==========================================================
+        
+
+const wait = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+async function playMorseSequence(text) {
+    if (!driver.connectedDevice) return;
+            
+    isPlaying = true;
+    stopSignal = false;
+            
+    const cleanText = text.toLowerCase().replace(/[^a-z0-9 .,? ]/g, '');
+    const UNIT = 220;  // npr. 220ms – možeš povećati/smanjiti po osjećaju
+
+    try {
+        for (let char of cleanText) {
+            if (stopSignal) break;
+            const code = MORSE_CODE[char];
+            if (!code) continue;
+
+            // razmak između reči
+            if (code === '/') {
+                await wait(UNIT * 7);
+                continue;
+            }
+
+            // prolaz kroz simbole jednog slova
+            for (let i = 0; i < code.length; i++) {
+                if (stopSignal) break;
+                const symbol = code[i];
+
+                if (symbol === '.') {
+                    // TAČKA – kraća vibracija
+                    await driver.triggerHaptic(0);
+                    await wait(UNIT);        // trajanje tačke
+               } else if (symbol === '-') {
+    await driver.triggerHaptic(14);
+    await wait(UNIT * 4);   // umesto 3, pa čak i 5–6 da bude “tvrđa” odvojenost
+}
+
+
+                // razmak između simbola u istom slovu (osim posle poslednjeg)
+                if (i < code.length - 1) {
+                    await wait(UNIT);
+                }
+            }
+
+            // razmak između slova
+            await wait(UNIT * 3);
+        }
+
+        // mali ekstra odmor na kraju cele poruke
+        await wait(UNIT * 2);
+    } catch (e) {
+        console.error(e);
+    } finally {
+        isPlaying = false;
+    }
+}
+
+
+    </script>
+</body>
+</html>
