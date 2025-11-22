@@ -34,23 +34,26 @@
             font-size: 14px;
         }
 
-        /* Grid for Effect Buttons */
-        .effect-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
-            gap: 10px;
+        /* Text input area */
+        #morse-input-container {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
             margin-top: 1rem;
         }
 
-        .effect-btn {
-            padding: 15px;
-            background: #eee;
-            border: 1px solid #999;
-            font-weight: bold;
+        #morse-text {
+            width: 100%;
+            min-height: 120px;
+            padding: 8px;
+            font-size: 14px;
+            font-family: monospace;
+            box-sizing: border-box;
         }
-        
-        .effect-btn:hover { background: #ddd; }
-        .effect-btn:active { background: #ccc; transform: translateY(1px); }
+
+        #translate-btn {
+            align-self: flex-start;
+        }
 
         /* Utilities */
         .hidden { display: none; }
@@ -59,8 +62,8 @@
 </head>
 <body>
 
-    <h1>MX Master 4 Haptic Effects</h1>
-    <p>Connect your Logitech MX Master 4 and click the buttons below to test haptic effects.</p>
+    <h1>MX Master 4 Morse Code Haptics Testing</h1>
+    <p>Connect your Logitech MX Master 4 to test morse code functions.</p>
 
     <div id="status-bar">
         <span id="status-text">Status: Disconnected</span>
@@ -68,9 +71,13 @@
     </div>
 
     <div id="controls" class="hidden">
-        <h3>Select Effect ID:</h3>
-        <div class="effect-grid" id="button-container">
-            </div>
+        <h3>Translate text into morse code vibrations:</h3>
+
+        <div id="morse-input-container">
+            <label for="morse-text">Enter text to translate:</label>
+            <textarea id="morse-text" placeholder="Type your message here..."></textarea>
+            <button id="translate-btn">Translate</button>
+        </div>
     </div>
 
     <div id="error-msg" class="error"></div>
@@ -86,18 +93,10 @@
         const statusText = document.getElementById('status-text');
         const controls = document.getElementById('controls');
         const errorMsg = document.getElementById('error-msg');
-        const btnContainer = document.getElementById('button-container');
+        const textInput = document.getElementById('morse-text');
+        const translateBtn = document.getElementById('translate-btn');
 
-        // 3. Render Effect Buttons (0 to 14)
-        for (let i = 0; i < 15; i++) {
-            const btn = document.createElement('button');
-            btn.textContent = i;
-            btn.className = 'effect-btn';
-            btn.onclick = () => trigger(i);
-            btnContainer.appendChild(btn);
-        }
-
-        // 4. Event Handlers
+        // 3. Connect / Disconnect handler
         connectBtn.onclick = async () => {
             errorMsg.textContent = '';
             try {
@@ -110,19 +109,39 @@
                 }
             } catch (e) {
                 // Ignore user cancellation
-                if (!e.message.includes("No device selected")) {
-                    errorMsg.textContent = e.message;
+                if (!e.message || !e.message.includes("No device selected")) {
+                    errorMsg.textContent = e.message || 'Unknown error';
                 }
             }
         };
 
-        async function trigger(id) {
-            try {
-                await driver.triggerHaptic(id);
-                console.log('Triggered effect:', id);
-            } catch (e) {
-                errorMsg.textContent = e.message;
+        // 4. Translate button handler
+        translateBtn.onclick = async () => {
+            errorMsg.textContent = '';
+
+            if (!driver.connectedDevice) {
+                errorMsg.textContent = 'Please connect your MX Master 4 first.';
+                return;
             }
+
+            const text = (textInput.value || '').trim();
+            if (!text) {
+                errorMsg.textContent = 'Please enter text to translate.';
+                return;
+            }
+
+            try {
+                await translateTextToMorse(text);
+            } catch (e) {
+                errorMsg.textContent = e.message || 'Error while translating to Morse.';
+            }
+        };
+
+        // Placeholder: hook your Morse logic + driver.triggerHaptic(...) here
+        async function translateTextToMorse(text) {
+            console.log('Translating to Morse (placeholder):', text);
+            // TODO: convert `text` to Morse and call driver.triggerHaptic(effectId)
+            // in the appropriate sequence with delays.
         }
 
         function setUIState(isConnected, name = '') {
