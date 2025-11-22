@@ -1,164 +1,358 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="bs">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Logitech MX Master 4 - Morse Reader</title>
+    <title>MX Master 4 - Ultimate Haptic Suite</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
+        /* --- GLOBALNI STILOVI --- */
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            max-width: 700px;
-            margin: 2rem auto;
-            padding: 0 1rem;
-            line-height: 1.6;
-            color: #333;
+            font-family: 'Montserrat', sans-serif;
+            background-color: #121212;
+            color: #e0e0e0;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
         }
-        
-        h1 { margin-bottom: 0.5rem; color: #2c3e50; }
-        
-        /* Status Bar */
-        #status-bar {
-            padding: 1rem;
-            background: #f8f9fa;
-            border: 1px solid #dee2e6;
-            border-radius: 6px;
-            margin-bottom: 2rem;
+
+        h1 {
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-top: 20px;
+            color: #fff;
+        }
+
+        /* --- NAVIGACIJA --- */
+        #top-bar {
+            width: 100%;
+            padding: 15px 30px;
+            background: #1e1e1e;
             display: flex;
             justify-content: space-between;
             align-items: center;
-        }
-
-        /* Dugmad */
-        button {
-            cursor: pointer;
-            padding: 10px 20px;
-            font-size: 14px;
-            border: none;
-            border-radius: 4px;
-            font-weight: bold;
-            transition: transform 0.1s;
-        }
-        button:active { transform: scale(0.98); }
-
-        #connect-btn { background-color: #007bff; color: white; }
-        #translate-btn { background-color: #28a745; color: white; }
-
-        /* KILL SWITCH STIL */
-        #stop-btn { 
-            background-color: #dc3545; 
-            color: white; 
-            margin-left: 10px;
-            border: 2px solid #a71d2a;
-            font-size: 16px;
-            padding: 10px 25px;
-        }
-        #stop-btn:hover { background-color: #c82333; }
-
-        /* Kontejner */
-        .control-panel {
-            padding: 20px;
-            border: 1px solid #e0e0e0;
-            border-radius: 8px;
-            background: #fff;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-        }
-
-        .auto-select-box {
-            margin-bottom: 20px;
-            padding: 15px;
-            background-color: #e8f4fd;
-            border-left: 5px solid #007bff;
-            transition: background-color 0.3s;
-        }
-        
-        /* Kada je isključeno, promeni boju da bude jasno */
-        .auto-select-box.disabled-look {
-            background-color: #f0f0f0;
-            border-left-color: #ccc;
-            color: #888;
-        }
-
-        textarea {
-            width: 100%;
-            min-height: 80px;
-            padding: 10px;
-            border: 1px solid #ccc;
-            margin-bottom: 10px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
             box-sizing: border-box;
         }
 
-        #current-output {
-            margin-top: 15px;
-            font-family: monospace;
-            font-size: 1.2em;
-            background: #222;
-            color: #0f0;
-            padding: 15px;
+        #status-indicator {
+            font-size: 0.8rem;
+            font-weight: bold;
+            color: #ff4757;
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        #status-indicator.connected { color: #2ecc71; }
+
+        .nav-btn {
+            background: transparent;
+            border: 1px solid #555;
+            color: #aaa;
+            padding: 8px 15px;
             border-radius: 4px;
-            min-height: 24px;
-            white-space: pre-wrap;
-            word-break: break-all;
+            cursor: pointer;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            transition: 0.2s;
+        }
+        .nav-btn:hover { border-color: #fff; color: #fff; }
+
+        /* --- VIEW KONTEJNER --- */
+        .view-container {
+            width: 100%;
+            max-width: 800px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding: 40px 20px;
+            display: none;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
         }
 
-        .hidden { display: none; }
-        .error { color: #dc3545; margin-top: 10px; font-weight: bold; }
+        .view-container.active {
+            display: flex;
+            opacity: 1;
+        }
+
+        /* --- HOME MENI --- */
+        .menu-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .menu-card {
+            background: #1e1e1e;
+            padding: 30px;
+            border-radius: 12px;
+            text-align: center;
+            cursor: pointer;
+            border: 1px solid #333;
+            transition: transform 0.2s, border-color 0.2s;
+        }
+        .menu-card:hover { transform: translateY(-5px); border-color: #3498db; }
+        .menu-card h3 { margin: 0 0 10px 0; color: #fff; }
+        .menu-card p { margin: 0; font-size: 0.8rem; color: #888; }
+
+        /* --- UI ELEMENTI --- */
+        textarea, input[type="text"] {
+            width: 100%;
+            background: #1e1e1e;
+            border: 1px solid #333;
+            color: #fff;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 1rem;
+            resize: vertical;
+            margin-bottom: 20px;
+            box-sizing: border-box;
+        }
+        textarea:focus, input:focus { outline: none; border-color: #3498db; }
+
+        .action-btn {
+            background: #fff;
+            color: #000;
+            border: none;
+            padding: 15px 30px;
+            font-weight: 800;
+            text-transform: uppercase;
+            cursor: pointer;
+            border-radius: 6px;
+            font-size: 1rem;
+            transition: 0.2s;
+        }
+        .action-btn:hover { transform: scale(1.05); background: #ddd; }
+        .action-btn:active { transform: scale(0.95); }
+
+        /* --- MORSE OUTPUT DISPLAY --- */
+        .morse-output-box {
+            width: 100%;
+            background: #252525;
+            color: #2ecc71;
+            font-family: monospace;
+            font-size: 1.2rem;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            min-height: 60px;
+            word-break: break-all;
+            letter-spacing: 3px;
+            border: 1px solid #333;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+
+        /* --- CHATBOT INTERFEJS --- */
+        .chat-interface {
+            width: 100%;
+            height: 500px;
+            background: #1e1e1e;
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            border: 1px solid #333;
+        }
+
+        .chat-messages {
+            flex-grow: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .msg {
+            max-width: 75%;
+            padding: 10px 15px;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+        .msg.bot { align-self: flex-start; background: #333; color: #fff; }
+        .msg.user { align-self: flex-end; background: #3498db; color: #fff; }
+        .msg.system { align-self: center; font-size: 0.75rem; color: #666; font-style: italic; background: transparent;}
+
+        /* --- TELEGRAPH AREA (UPDATED) --- */
+        .telegraph-area {
+            height: 160px;
+            background: #252525;
+            border-top: 1px solid #444;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            user-select: none;
+            transition: background 0.2s;
+            position: relative;
+        }
+        
+        .telegraph-area.recording { background: #333 !important; }
+        .telegraph-area.holding { background: #e67e22 !important; } 
+        .telegraph-area.space-ready { background: #2ecc71 !important; } 
+
+        #typed-text {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 1.4rem;
+            color: #fff;
+            font-weight: bold;
+            min-height: 1.5rem;
+            margin-bottom: 10px;
+        }
+        #current-symbol {
+            font-family: monospace;
+            font-size: 1.8rem;
+            color: #f1c40f;
+            letter-spacing: 5px;
+            height: 40px;
+            font-weight: bold;
+        }
+        .typing-hint {
+            font-size: 0.75rem; 
+            color: #888; 
+            position: absolute; 
+            bottom: 10px;
+            width: 100%;
+            text-align: center;
+        }
+
+        /* --- READER TEXT --- */
+        .reader-text {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            color: #aaa;
+            text-align: justify;
+        }
+        .reader-text::selection { background: #3498db; color: white; }
+        .hidden { display: none !important; }
+
     </style>
 </head>
 <body>
 
-    <h1>MX Master 4 Haptic Translator</h1>
-
-    <div id="status-bar">
-        <span id="status-text">Status: 🔴 Disconnected</span>
-        <button id="connect-btn">Poveži Miša</button>
+    <div id="top-bar">
+        <div id="status-indicator">🔴 Disconnected</div>
+        <div style="display: flex; gap: 10px;">
+            <button id="connect-btn" class="nav-btn">POVEŽI MIŠA</button>
+            <button id="home-btn" class="nav-btn hidden">NAZAD NA HOME</button>
+        </div>
     </div>
 
-    <div id="controls" class="hidden">
+    <div id="view-home" class="view-container active">
+        <h1>MX Master 4 Haptic Suite</h1>
+        <p style="color: #666; margin-bottom: 40px;">Odaberi modul:</p>
         
-        <div class="auto-select-box" id="auto-select-container">
-            <label style="cursor: pointer; font-weight: bold; font-size: 1.1em;">
-                <input type="checkbox" id="auto-select-mode"> 
-                🖐️ Aktiviraj Haptic Čitanje
-            </label>
-            <p style="margin: 5px 0 0 24px; font-size: 0.9em;">
-                Ako je ovo isključeno, miš NEĆE vibrirati na selekciju. Ako isključite dok radi, odmah staje.
-            </p>
-        </div>
-
-        <div class="control-panel">
-            <textarea id="morse-text" placeholder="Unesi tekst ovde..."></textarea>
-            <div style="display: flex; justify-content: space-between;">
-                <button id="translate-btn">▶️ Pusti</button>
-                <button id="stop-btn">🛑 STOP</button>
+        <div class="menu-grid">
+            <div class="menu-card" onclick="switchView('view-translator')">
+                <h3>📝 Translator</h3>
+                <p>Unesi tekst i prevedi ga u vibracije.</p>
             </div>
-            <div id="current-output">Spreman...</div>
+            <div class="menu-card" onclick="switchView('view-reader')">
+                <h3>👁️ Highlight Reader</h3>
+                <p>Automatsko čitanje selektovanog teksta.</p>
+            </div>
+            <div class="menu-card" onclick="switchView('view-chat')">
+                <h3>🤖 Haptic Chatbot</h3>
+                <p>Levi klik = Kucaj<br>Srednji = Slovo/Reč<br>Desni = Šalji</p>
+            </div>
         </div>
     </div>
 
-    <div id="error-msg" class="error"></div>
+    <div id="view-translator" class="view-container">
+        <h1>Text Translator</h1>
+        <p style="margin-bottom: 20px;">Unesite poruku za prevođenje.</p>
+        
+        <textarea id="trans-input" placeholder="Ovde kucajte tekst..."></textarea>
+        
+        <div style="display: flex; gap: 20px;">
+            <button id="trans-play-btn" class="action-btn">TRANSLATE & PLAY</button>
+            <button onclick="stopAll()" class="action-btn" style="background: #e74c3c; color: white;">STOP</button>
+        </div>
+
+        <div class="morse-output-box" id="trans-morse-visual">
+            [ VIZUELNI PREVOD ]
+        </div>
+    </div>
+
+    <div id="view-reader" class="view-container">
+        <h1>Highlight Reader</h1>
+        <p style="color: #3498db; font-weight: bold; margin-bottom: 20px;">
+            STATUS: <span id="reader-status">Spreman. Selektuj bilo šta.</span>
+        </p>
+        
+        <div class="reader-text">
+            Ovo je testni tekst za funkcionalnost automatskog čitanja. 
+            Kada korisnik highlightuje (selektuje) bilo koji deo ove rečenice, 
+            sistem će sačekati tačno jednu sekundu. 
+            <br><br>
+            Ako selekcija ostane aktivna, miš će početi da vibrira selektovani tekst u Morzeovom kodu. 
+            Probajte selektovati samo jednu reč.
+        </div>
+        <br>
+        <button onclick="stopAll()" class="action-btn" style="background: #e74c3c; color: white; padding: 10px 20px; font-size: 0.8rem;">STOP VIBRACIJI</button>
+    </div>
+
+    <div id="view-chat" class="view-container">
+        <h1>Haptic AI Chat</h1>
+        <div class="chat-interface">
+            <div class="chat-messages" id="chat-log">
+                <div class="msg system">Sistem online. Koristite miša za unos.</div>
+                <div class="msg bot">Zdravo! Ja sam Haptic Bot. Klikći da mi pišeš.</div>
+            </div>
+            
+            <div class="telegraph-area" id="telegraph-zone" oncontextmenu="return false;">
+                <div id="typed-text"></div>
+                <div id="current-symbol"></div>
+
+                <div class="typing-hint">
+                    LEVI: Kucaj &nbsp;|&nbsp; 
+                    <span style="color:#e67e22; font-weight:bold;">SREDNJI (KLIK): Slovo</span> &nbsp;|&nbsp; 
+                    <span style="color:#2ecc71; font-weight:bold;">SREDNJI (DUGO): Razmak</span> &nbsp;|&nbsp; 
+                    DESNI: Šalji
+                </div>
+            </div>
+        </div>
+    </div>
 
     <script type="module">
         import { LogitechHapticDriver } from './logitech-haptic-driver.js';
 
         const driver = new LogitechHapticDriver();
 
-        // Elementi
-        const connectBtn = document.getElementById('connect-btn');
-        const statusText = document.getElementById('status-text');
-        const controls = document.getElementById('controls');
-        const errorMsg = document.getElementById('error-msg');
-        const textInput = document.getElementById('morse-text');
-        const translateBtn = document.getElementById('translate-btn');
-        const stopBtn = document.getElementById('stop-btn');
-        const outputDisplay = document.getElementById('current-output');
-        const autoSelectCheckbox = document.getElementById('auto-select-mode');
-        const autoSelectContainer = document.getElementById('auto-select-container');
-
-        // Stanje
+        // --- GLOBALNO STANJE ---
         let isPlaying = false;
-        let stopSignal = false; 
+        let stopSignal = false;
+        let currentView = 'view-home';
+        let highlightTimer = null;
 
-        // Morse rečnik
+        // --- CHAT STANJE ---
+        let clickStartTime = 0;     
+        let middleClickStartTime = 0; 
+        let currentSymbolSequence = ""; 
+        let committedMessage = "";
+        let holdVisualTimer = null;      
+        
+        // KONSTANTE
+        const DOT_DURATION_MAX = 200;   
+        const HOLD_FOR_SPACE_MS = 600;  
+
+        // --- MORZE REČNIK ---
         const MORSE_CODE = {
             'a': '.-',    'b': '-...',  'c': '-.-.',  'd': '-..',
             'e': '.',     'f': '..-.',  'g': '--.',   'h': '....',
@@ -169,162 +363,307 @@
             'y': '-.--',  'z': '--..',  '1': '.----', '2': '..---',
             '3': '...--', '4': '....-', '5': '.....', '6': '-....',
             '7': '--...', '8': '---..', '9': '----.', '0': '-----',
-            ' ': '/'
+            ' ': '/',     '.': '.-.-.-', ',': '--..--', '?': '..--..'
         };
+        const REVERSE_MORSE = Object.fromEntries(Object.entries(MORSE_CODE).map(([k, v]) => [v, k]));
 
-        // --- 1. LOGIKA ZA CHECKBOX (MASTER SWITCH) ---
-        autoSelectCheckbox.onchange = () => {
-            if (!autoSelectCheckbox.checked) {
-                // Korisnik je isključio opciju -> ODMAH PREKINI SVE
-                autoSelectContainer.classList.add('disabled-look');
-                
-                if (isPlaying) {
-                    console.log("Checkbox isključen -> Aktiviranje STOP signala");
-                    stopSignal = true;
-                    outputDisplay.textContent = "🛑 PREKINUTO (OPCIJA ISKLJUČENA)";
-                    outputDisplay.style.color = "red";
-                }
+
+        // ==========================================================
+        // 1. NAVIGACIJA I SISTEM
+        // ==========================================================
+        window.switchView = (viewId) => {
+            document.querySelectorAll('.view-container').forEach(el => el.classList.remove('active'));
+            document.getElementById(viewId).classList.add('active');
+            currentView = viewId;
+            
+            const homeBtn = document.getElementById('home-btn');
+            if (viewId === 'view-home') {
+                homeBtn.classList.add('hidden');
+                stopAll();
             } else {
-                autoSelectContainer.classList.remove('disabled-look');
+                homeBtn.classList.remove('hidden');
             }
         };
 
-        // --- 2. CONNECT ---
+        document.getElementById('home-btn').onclick = () => window.switchView('view-home');
+
+        window.stopAll = () => {
+            stopSignal = true;
+            isPlaying = false;
+            clearTimeout(highlightTimer);
+            document.getElementById('reader-status').textContent = "Prekinuto.";
+            setTimeout(() => { stopSignal = false; }, 200);
+        };
+
+        const connectBtn = document.getElementById('connect-btn');
+        const statusInd = document.getElementById('status-indicator');
+
         connectBtn.onclick = async () => {
-            errorMsg.textContent = '';
             try {
                 if (driver.connectedDevice) {
                     await driver.disconnect();
-                    setUIState(false);
+                    statusInd.textContent = "🔴 Disconnected";
+                    statusInd.classList.remove('connected');
+                    connectBtn.textContent = "POVEŽI MIŠA";
                 } else {
                     const device = await driver.connect();
-                    setUIState(true, device.productName);
+                    statusInd.innerHTML = `🟢 Connected: ${device.productName}`;
+                    statusInd.classList.add('connected');
+                    connectBtn.textContent = "DISCONNECT";
                 }
-            } catch (e) {
-                if (!e.message.includes("No device selected")) errorMsg.textContent = e.message;
+            } catch (e) { console.error(e); }
+        };
+
+
+        // ==========================================================
+        // 2. TRANSLATOR & READER
+        // ==========================================================
+        document.getElementById('trans-play-btn').onclick = () => {
+            const text = document.getElementById('trans-input').value;
+            if(text) {
+                const cleanText = text.toLowerCase();
+                let visualStr = "";
+                for (let char of cleanText) {
+                    if(MORSE_CODE[char]) visualStr += MORSE_CODE[char] + " ";
+                    else if (char === " ") visualStr += " / ";
+                }
+                document.getElementById('trans-morse-visual').textContent = visualStr;
+                playMorseSequence(text);
             }
         };
 
-        // --- 3. PLAY DUGME ---
-        translateBtn.onclick = () => {
-            const text = textInput.value;
-            if(text) playMorseSequence(text);
-        };
+        document.addEventListener('selectionchange', () => {
+            if (currentView !== 'view-reader') return;
+            const readerStatus = document.getElementById('reader-status');
+            clearTimeout(highlightTimer);
+            if (isPlaying) stopAll();
+            const selection = window.getSelection().toString().trim();
 
-        // --- 4. STOP DUGME ---
-        stopBtn.onclick = () => {
-            stopSignal = true;
-            isPlaying = false;
-            outputDisplay.textContent = "🛑 STOPIRANO";
-            outputDisplay.style.color = "red";
-        };
-
-        // --- 5. AUTO SELEKCIJA ---
-        document.addEventListener('mouseup', async () => {
-            // *** GLAVNA PROVERA ***
-            // Ako checkbox nije strikliran, izlazi odmah! Ne radi nista!
-            if (!driver.connectedDevice || !autoSelectCheckbox.checked) return;
-
-            const selectedText = window.getSelection().toString().trim();
-
-            if (selectedText.length > 0) {
-                if (isPlaying) {
-                    stopSignal = true;
-                    await wait(100);
-                }
-                playMorseSequence(selectedText);
+            if (selection.length > 0) {
+                readerStatus.textContent = "⏳ Čekam 1s...";
+                readerStatus.style.color = "#f1c40f";
+                highlightTimer = setTimeout(() => {
+                    readerStatus.textContent = "🔊 Čitanje u toku...";
+                    readerStatus.style.color = "#2ecc71";
+                    playMorseSequence(selection);
+                }, 1000);
+            } else {
+                readerStatus.textContent = "Spreman.";
+                readerStatus.style.color = "#aaa";
             }
         });
 
-        // --- 6. MOTOR ZA REPRODUKCIJU (SA SIGURNOSNIM PROVERAMA) ---
+
+        // ==========================================================
+        // 3. CHATBOT LOGIKA
+        // ==========================================================
+        const telegraphZone = document.getElementById('telegraph-zone');
+        const typedTextDisplay = document.getElementById('typed-text');
+        const currentSymbolDisplay = document.getElementById('current-symbol');
+
+        telegraphZone.addEventListener('contextmenu', e => e.preventDefault());
+        telegraphZone.addEventListener('mousedown', e => {
+            if(e.button === 1) e.preventDefault();
+        });
+
+        telegraphZone.addEventListener('mousedown', (e) => {
+            if (currentView !== 'view-chat') return;
+            e.preventDefault();
+
+            // LEVI (Morse)
+            if (e.button === 0) { 
+                clickStartTime = Date.now();
+                telegraphZone.classList.add('recording');
+            }
+            
+            // SREDNJI (Slovo vs Reč)
+            if (e.button === 1) { 
+                middleClickStartTime = Date.now();
+                telegraphZone.classList.add('holding'); 
+                
+                clearTimeout(holdVisualTimer);
+                holdVisualTimer = setTimeout(() => {
+                    telegraphZone.classList.remove('holding');
+                    telegraphZone.classList.add('space-ready'); 
+                }, HOLD_FOR_SPACE_MS);
+            }
+        });
+
+        telegraphZone.addEventListener('mouseup', (e) => {
+            if (currentView !== 'view-chat') return;
+            e.preventDefault();
+            
+            telegraphZone.classList.remove('recording', 'holding', 'space-ready');
+            clearTimeout(holdVisualTimer);
+
+            // --- LEVI KLIK: Morse ---
+            if (e.button === 0) { 
+                const duration = Date.now() - clickStartTime;
+                const symbol = duration < DOT_DURATION_MAX ? '.' : '-';
+                currentSymbolSequence += symbol;
+                updateChatUI();
+            } 
+            
+            // --- SREDNJI KLIK: Slovo ili Razmak ---
+            else if (e.button === 1) {
+                const holdDuration = Date.now() - middleClickStartTime;
+                
+                if (currentSymbolSequence.length > 0) {
+                    commitLetter();
+                }
+
+                if (holdDuration > HOLD_FOR_SPACE_MS) {
+                    addSpace();
+                }
+            } 
+            
+            // --- DESNI KLIK: Šalji ---
+            else if (e.button === 2) {
+                if (currentSymbolSequence.length > 0) commitLetter();
+                // Trimujemo da ne šaljemo prazne poruke ili samo razmake
+                if (committedMessage.trim().length > 0) sendMessageToBot();
+            }
+        });
+
+        function commitLetter() {
+            if (!currentSymbolSequence) return;
+            const letter = REVERSE_MORSE[currentSymbolSequence];
+            const charToAdd = letter ? letter.toUpperCase() : '?';
+            committedMessage += charToAdd;
+            currentSymbolSequence = ""; 
+            updateChatUI();
+        }
+
+        function addSpace() {
+            if (committedMessage.length > 0 && !committedMessage.endsWith(" ")) {
+                committedMessage += " ";
+                updateChatUI();
+            }
+        }
+
+        function updateChatUI() {
+            typedTextDisplay.textContent = committedMessage;
+            currentSymbolDisplay.textContent = currentSymbolSequence;
+        }
+
+        // --- API CONNECT ---
+        async function sendMessageToBot() {
+            // 1. OSIGURAVAMO DA TEKST NIJE PRAZAN I PREUZIMAMO GA
+            const textToSend = committedMessage.trim();
+            if (!textToSend) return; // Ne šalji prazno
+
+            // 2. GENERIŠEMO JEDINSTVENI ID ZA USER PORUKU (OVO JE BIO BUG)
+            // Prikazujemo user poruku
+            addChatMessage('user', textToSend);
+            
+            // 3. RESETUJEMO BUFFER
+            committedMessage = ""; 
+            updateChatUI();
+            
+            // 4. PRIKAZUJEMO BOT LOADING... (Takođe jedinstveni ID)
+            const loadingId = addChatMessage('bot', '...');
+            
+            try {
+                const reply = await getSmartReply(textToSend);
+                const msgDiv = document.getElementById(loadingId);
+                if(msgDiv) msgDiv.textContent = reply;
+                playMorseSequence(reply);
+            } catch (e) {
+                const msgDiv = document.getElementById(loadingId);
+                if(msgDiv) msgDiv.textContent = "Offline mode";
+            }
+        }
+
+        async function getSmartReply(input) {
+            const q = input.toLowerCase().trim();
+            if (q === 'sos') return "POMOC STIZE";
+            // --- OVDE STAVI API KEY AKO GA IMAS ---
+            const API_KEY = ''; 
+
+            if (!API_KEY) {
+                if (q.includes('zdravo')) return "POZDRAV";
+                if (q.includes('ko si')) return "JA SAM MIS";
+                return "PRIMLJENO";
+            }
+
+            try {
+                const response = await fetch('https://api.openai.com/v1/chat/completions', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${API_KEY}`
+                    },
+                    body: JSON.stringify({
+                        model: "gpt-3.5-turbo",
+                        messages: [
+                            { role: "system", content: "You are a haptic assistant. Answer in max 5 words." },
+                            { role: "user", content: input }
+                        ]
+                    })
+                });
+                const data = await response.json();
+                return data.choices[0].message.content.toUpperCase();
+            } catch (e) { return "ERROR"; }
+        }
+
+        // --- POPRAVLJENA FUNKCIJA ZA CHAT MESSAGE (UNIKATNI ID) ---
+        function addChatMessage(sender, text) {
+            const chatLog = document.getElementById('chat-log');
+            const div = document.createElement('div');
+            
+            // Dodajemo random broj da ID bude 100% jedinstven i sprečimo "Speed of Light" bug
+            const id = 'msg-' + Date.now() + '-' + Math.floor(Math.random() * 10000);
+            
+            div.id = id;
+            div.className = `msg ${sender}`;
+            div.textContent = text;
+            chatLog.appendChild(div);
+            chatLog.scrollTop = chatLog.scrollHeight;
+            return id;
+        }
+
+
+        // ==========================================================
+        // HAPTIČKI MOTOR
+        // ==========================================================
         const wait = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
         async function playMorseSequence(text) {
-            // Još jedna provera za svaki slučaj
-            if (!autoSelectCheckbox.checked && text !== textInput.value) return; 
-
-            stopSignal = false;
-            isPlaying = true;
+            if (!driver.connectedDevice) return;
             
-            outputDisplay.style.color = "#0f0";
-            outputDisplay.textContent = "";
-
-            const cleanText = text.toLowerCase().replace(/[^a-z0-9 ]/g, '');
-            const UNIT = 120; 
+            isPlaying = true;
+            stopSignal = false;
+            
+            const cleanText = text.toLowerCase().replace(/[^a-z0-9 .,? ]/g, '');
+            const UNIT = 100;
 
             try {
                 for (let char of cleanText) {
-                    if (await shouldStop()) break; 
-
+                    if (stopSignal) break;
                     const code = MORSE_CODE[char];
                     if (code) {
-                        outputDisplay.textContent += char.toUpperCase();
-                        
                         if (code === '/') {
-                            outputDisplay.textContent += " ";
-                            if(await safeWait(UNIT * 7)) break; 
+                            await wait(UNIT * 7);
                         } else {
                             for (let symbol of code) {
-                                if (await shouldStop()) break;
-
-                                if (symbol === '.') {
-                                    await driver.triggerHaptic(0);
-                                    if(await safeWait(UNIT)) break; 
-                                } else if (symbol === '-') {
-                                    await driver.triggerHaptic(1);
-                                    if(await safeWait(UNIT * 3)) break; 
-                                }
+                                if (stopSignal) break;
                                 
-                                if(await safeWait(UNIT)) break; 
+                                if (symbol === '.') {
+                                    await driver.triggerHaptic(0); 
+                                    await wait(UNIT);
+                                } else if (symbol === '-') {
+                                    await driver.triggerHaptic(14); 
+                                    await wait(UNIT * 3);
+                                    await driver.triggerHaptic(0); 
+                                }
+                                await wait(UNIT);
                             }
-                            if(await safeWait(UNIT * 3)) break; 
+                            await wait(UNIT * 3);
                         }
                     }
                 }
-            } catch (e) {
-                console.error(e);
-                errorMsg.textContent = "Greška sa uređajem.";
-            } finally {
-                isPlaying = false;
-                if (!stopSignal) outputDisplay.textContent += " [KRAJ]";
-            }
-        }
-
-        // Proverava i Stop dugme i Checkbox stanje
-        async function shouldStop() {
-            if (stopSignal) return true;
-            // Dodatna provera: ako je korisnik isključio checkbox tokom rada -> STOP
-            // (Ovo je redundantno sa onchange eventom, ali služi kao dvostruka sigurnost)
-            if (!autoSelectCheckbox.checked && window.getSelection().toString().trim().length > 0) { 
-                 // Mala logika: dozvoli ručni unos čak i ako je checkbox ugašen? 
-                 // Ako želiš da checkbox gasi I ručni unos, samo stavi: if (!autoSelectCheckbox.checked) return true;
-                 // Trenutno gasi ako je checkbox ugašen, pretpostavljajući da je to "master switch".
-            }
-            return false;
-        }
-
-        async function safeWait(ms) {
-            if (stopSignal) return true;
-            await wait(ms);
-            if (stopSignal) return true;
-            return false;
-        }
-
-        function setUIState(isConnected, name = '') {
-            if (isConnected) {
-                statusText.innerHTML = `Status: 🟢 <b>Connected</b> (${name})`;
-                statusText.style.color = 'green';
-                connectBtn.textContent = "Disconnect";
-                connectBtn.style.backgroundColor = "#6c757d";
-                controls.classList.remove('hidden');
-            } else {
-                statusText.textContent = "Status: 🔴 Disconnected";
-                statusText.style.color = 'red';
-                connectBtn.textContent = "Poveži Miša";
-                connectBtn.style.backgroundColor = "#007bff";
-                controls.classList.add('hidden');
-                isPlaying = false;
-            }
+            } catch (e) { console.error(e); } 
+            finally { isPlaying = false; }
         }
     </script>
 </body>
