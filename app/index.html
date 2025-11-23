@@ -353,7 +353,7 @@
         <div class="chat-interface">
             <div class="chat-messages" id="chat-log">
                 <div class="msg system">system online. use mouse to input.</div>
-                <div class="msg bot">hello. i am haptic bot. click to write.</div>
+                <div class="msg bot">HELLO! I AM HAPTIC BOT. CLICK TO WRITE.</div>
             </div>
             
             <div class="telegraph-area" id="telegraph-zone" oncontextmenu="return false;">
@@ -660,7 +660,12 @@
             if (q === 'sos') return "HELP COMING";
 
             // together.ai api key
-            const API_KEY = 'tgp_v1_fVak5-bekMyRkTNFDYJiPU3Ke0vY9JRcoZmRsn_Mffc';
+
+            let API_KEY = localStorage.getItem('haptic_api_key');
+            if (!API_KEY) {
+                API_KEY = prompt("Enter API Key:");
+                if (API_KEY) localStorage.setItem('haptic_api_key', API_KEY);
+            }
 
             if (!API_KEY) {
                 if (q.includes('zdravo') || q.includes('hello')) return "GREETINGS";
