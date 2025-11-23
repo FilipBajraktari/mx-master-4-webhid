@@ -57,37 +57,6 @@ import { LogitechHapticDriver } from './app/logitech-haptic-driver.js';
 const driver = new LogitechHapticDriver();
 ```
 
-### Methods
-
-#### `connect()`
-
-Initiates the WebHID connection request. This requires a user gesture.
-
-```javascript
-await driver.connect();
-```
-
-#### `triggerHaptic(effectId)`
-
-Triggers a specific haptic waveform stored on the device.
-
-  - **Parameters**: `effectId` (Integer, 0-14)
-
-<!-- end list -->
-
-```javascript
-// Trigger effect ID 1
-await driver.triggerHaptic(1);
-```
-
-#### `disconnect()`
-
-Terminates the connection to the device.
-
-```javascript
-await driver.disconnect();
-```
-
 ## Configuration
 
 The driver allows for configuration overrides during initialization if necessary:
