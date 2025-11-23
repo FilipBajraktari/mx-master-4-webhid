@@ -1,84 +1,105 @@
-# Logitech MX Master 4 WebHID Haptics
+# HapticMorse: MX Master 4 WebHID Control
 
-A lightweight, zero-dependency JavaScript library to control haptic feedback on the Logitech MX Master 4 using the WebHID API.
+HapticMorse is a lightweight, web-based application designed to interface with the Logitech MX Master 4 mouse using the WebHID API. This project demonstrates the capability to control the device's haptic feedback engine without external dependencies, utilizing pure JavaScript.
 
-### [Live demo](https://mario-gutierrez.github.io/mx-master-4-webhid/app)
+The application serves as both a proof-of-concept driver and a functional demonstration of haptic communication through three distinct modules: a text-to-haptic translator, a screen reader, and a haptic input chat interface.
 
-## 🚀 Quick Start
+## Features
 
-### 1. Prerequisites
-* **Browser:** Chromium-based browser (Chrome, Edge, Opera) is required for WebHID support.
-* **Hardware:** Logitech MX Master 4 connected via USB or Bluetooth.
+### Core Functionality
 
-### 2. Running the Demo Locally
-Because this project uses ES Modules (`import` statements), you cannot open `index.html` directly from the file system (`file://`). You must use a local server.
+  - **Zero Dependencies**: Built entirely with vanilla JavaScript.
+  - **WebHID Integration**: Direct browser-to-device communication.
+  - **Custom Driver**: Includes a reusable `LogitechHapticDriver` class for integration into other projects.
 
-**Using Python:**
+### Application Modules
+
+1.  **Text Translator**: Converts user input into standard Morse code vibrations played through the mouse's haptic motor.
+2.  **Highlight Reader**: A background service that detects text selection on the page. When text is highlighted, the application translates the selection into haptic feedback after a one-second delay.
+3.  **Haptic AI Chatbot**: A bidirectional interface allowing users to communicate with an AI.
+      - **Input**: Users input text via mouse clicks (Left Click = Dot/Dash, Middle Click = Confirm Letter/Space).
+      - **Output**: AI responses are translated into haptic vibrations.
+
+## Prerequisites
+
+  - **Hardware**: Logitech MX Master 4 (connected via Bluetooth or USB Receiver).
+  - **Software**: A Chromium-based browser (Chrome, Edge, Opera) with WebHID support enabled.
+
+## Installation and Usage
+
+Due to the usage of ES Modules, this project requires a local web server to function correctly. It cannot be run directly from the file system.
+
+### Option 1: Python
+
+Run the following command in the project root:
+
 ```bash
-# Run inside the project root
 python3 -m http.server 8000
-# Open http://localhost:8000/app/ in your browser
 ```
 
-**Using Node:**
+Navigate to `http://localhost:8000/app/` in your browser.
+
+### Option 2: Node.js
+
 ```bash
 npx http-server .
 ```
 
-## 📦 Library Usage
-The core logic is contained in `app/logitech-haptic-driver.js.`
+## Developer API Reference
 
-Importing the Driver
-```JavaScript
-import { LogitechHapticDriver } from './path/to/logitech-haptic-driver.js';
+The core logic is encapsulated within `app/logitech-haptic-driver.js`.
+
+### Initialization
+
+```javascript
+import { LogitechHapticDriver } from './app/logitech-haptic-driver.js';
 
 const driver = new LogitechHapticDriver();
-````
+```
 
-## API Reference
-`connect()`
+### Methods
 
-Prompts the user to select the MX Master 4 device and opens a connection.
+#### `connect()`
 
-```JavaScript
+Initiates the WebHID connection request. This requires a user gesture.
 
-try {
-    await driver.connect();
-    console.log("Device connected!");
-} catch (error) {
-    console.error("Connection failed:", error);
-}
-````
+```javascript
+await driver.connect();
+```
 
-`triggerHaptic(effectId)`
+#### `triggerHaptic(effectId)`
 
-Triggers a specific haptic effect.
+Triggers a specific haptic waveform stored on the device.
 
-effectId: Integer (0-14).
+  - **Parameters**: `effectId` (Integer, 0-14)
 
-```JavaScript
+<!-- end list -->
+
+```javascript
 // Trigger effect ID 1
 await driver.triggerHaptic(1);
-````
+```
 
-`disconnect()`
+#### `disconnect()`
 
-Closes the connection to the device.
+Terminates the connection to the device.
 
-```JavaScript
+```javascript
 await driver.disconnect();
-````
+```
 
-**🔧 Configuration**
+## Configuration
 
-The driver is pre-configured for the MX Master 4, but you can override defaults during initialization if needed:
+The driver allows for configuration overrides during initialization if necessary:
 
-```JavaScript
+```javascript
 const driver = new LogitechHapticDriver({
-    vendorId: 0x046d,  // Logitech
-    productId: 0xb042  // MX Master 4
+    vendorId: 0x046d,
+    productId: 0xb042
 });
-````
+```
 
-### ⚠️ Disclaimer
-This is an experimental project, it is not officially supported by Logitech.
+## Disclaimer
+
+This software is an experimental project and is not officially supported by or affiliated with Logitech. Use at your own discretion.
+\<ctrl46\>,filename:\<ctrl46\>README.md\<ctrl46\>}
