@@ -71,4 +71,3 @@ const driver = new LogitechHapticDriver({
 ## Disclaimer
 
 This software is an experimental project and is not officially supported by or affiliated with Logitech. Use at your own discretion.
-\<ctrl46\>,filename:\<ctrl46\>README.md\<ctrl46\>}
